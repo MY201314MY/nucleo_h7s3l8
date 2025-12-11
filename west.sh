@@ -1,0 +1,1 @@
+west build -b nucleo_h7s3l8 --sysbuild -p

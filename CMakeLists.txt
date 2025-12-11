@@ -10,4 +10,4 @@ project(sample_with_mcuboot)
 # used when building MCUboot.
 test_sysbuild()
 
-target_sources(app PRIVATE src/main.c)
+target_sources(app PRIVATE src/main.c src/operation.c)
