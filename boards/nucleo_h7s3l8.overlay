@@ -16,6 +16,10 @@
 	};
 };
 
+&sram2 {
+	status = "okay";
+};
+
 &pll {
 	div-m = <2>;
 	mul-n = <50>;

@@ -27,10 +27,7 @@ Memory region         Used Size  Region Size  %age Used
             ITCM:          0 GB        64 KB      0.00%
           EXTMEM:          0 GB        32 MB      0.00%
         IDT_LIST:          0 GB        32 KB      0.00%
-
 ```
-
-
 
 # openocd
 
@@ -171,6 +168,89 @@ CAN frame #7 successfully sent
 can@4000a000  --       123  [12]  11 22 33 44 55 66 77 88 aa bb 00 00 
 [00:20:13.476,000] <dbg> can_mcan: can_mcan_line_1_isr: RX FIFO0 INT
 [00:20:13.476,000] <dbg> can_mcan: can_mcan_get_message: Frame on filter 0, ID: 0x123
+```
+
+# ethernet
+```shell
+*** Booting MCUboot v2.2.0-243-g234c66e66ee3 ***
+*** Using Zephyr OS build v4.3.0-2311-gcb2109e7d924 ***
+
+[00:00:00.051,000] <inf> phy_mii: PHY (0) ID 7C131
+[00:00:00.051,000] <dbg> can_mcan: can_mcan_init: IP rel: 3.2.1 04.18.24
+[00:00:00.052,000] <dbg> can_mcan: can_mcan_init: Presc: 1, TS1: 17, TS2: 6
+[00:00:00.052,000] <dbg> can_mcan: can_mcan_init: Sample-point err : 0
+[00:00:00.052,000] <dbg> can_mcan: can_mcan_init: Sample-point err data phase: 0
+[00:00:00.052,000] <dbg> can_mcan: can_mcan_set_timing_data: TDC enabled, using TDCO 18
+[00:00:00.052,000] <dbg> can_stm32fd: config_can_0_irq: Enable CAN0 IRQ
+[00:00:00.052,000] <dbg> eth_stm32_hal: eth_initialize: MAC 02:80:e1:40:ec:24
+[00:00:00.055,000] <dbg> eth_stm32_hal: eth_stm32_hal_stop: Stopping ETH HAL driver
+[00:00:00.055,000] <dbg> eth_stm32_hal: eth_stm32_hal_stop: HAL_ETH_Stop{_IT} returned error (Ethernet is already stopped)
+*** Booting Zephyr OS build v4.3.0-2311-gcb2109e7d924 ***
+[00:00:00.058,000] <inf> main: app start address: 0x0x70000000
+[00:00:00.058,000] <inf> main: soc : stm32h7s3xx
+[00:00:00.058,000] <inf> main: board : nucleo_h7s3l8
+[00:00:00.058,000] <inf> main: frequency : 600 MHz (Cortex-M7)
+[00:00:01.556,000] <inf> phy_mii: PHY (0) Link speed 100 Mb, full duplex
+[00:00:01.556,000] <dbg> eth_stm32_hal: eth_stm32_hal_stop: Stopping ETH HAL driver
+[00:00:01.556,000] <dbg> eth_stm32_hal: eth_stm32_hal_stop: HAL_ETH_Stop{_IT} returned error (Ethernet is already stopped)
+[00:00:01.556,000] <dbg> eth_stm32_hal: eth_stm32_hal_start: Starting ETH HAL driver
+inspiron:~$ net ip
+  ipv4  ipv6
+inspiron:~$ net ipv4 
+IPv4 support                              : enabled
+IPv4 fragmentation support                : disabled
+IPv4 conflict detection support           : disabled
+Path MTU Discovery (PMTU)                 : disabled
+Max number of IPv4 network interfaces in the system          : 1
+Max number of unicast IPv4 addresses per network interface   : 1
+Max number of multicast IPv4 addresses per network interface : 2
+
+IPv4 addresses for interface 1 (0x24001760) (Ethernet)
+====================================================
+Type            State           Ref     Address
+inspiron:~$ net dhcpv
+  dhcpv4  dhcpv6
+inspiron:~$ net dhcpv4 client s
+  start  stop
+inspiron:~$ net dhcpv4 client start 1
+inspiron:~$ net ipv4
+IPv4 support                              : enabled
+IPv4 fragmentation support                : disabled
+IPv4 conflict detection support           : disabled
+Path MTU Discovery (PMTU)                 : disabled
+Max number of IPv4 network interfaces in the system          : 1
+Max number of unicast IPv4 addresses per network interface   : 1
+Max number of multicast IPv4 addresses per network interface : 2
+
+IPv4 addresses for interface 1 (0x24001760) (Ethernet)
+====================================================
+Type            State           Ref     Address
+DHCP    preferred       1       192.168.3.32/255.255.255.0
+inspiron:~$ net ping 8.8.8.8
+PING 8.8.8.8
+28 bytes from 8.8.8.8 to 192.168.3.32: icmp_seq=1 ttl=112 time=45.34 ms
+28 bytes from 8.8.8.8 to 192.168.3.32: icmp_seq=2 ttl=112 time=45.04 ms
+28 bytes from 8.8.8.8 to 192.168.3.32: icmp_seq=3 ttl=112 time=45.74 ms
+inspiron:~$ net ping 192.168.3.1
+PING 192.168.3.1
+28 bytes from 192.168.3.1 to 192.168.3.32: icmp_seq=1 ttl=64 time=1.52 ms
+28 bytes from 192.168.3.1 to 192.168.3.32: icmp_seq=2 ttl=64 time=1.44 ms
+28 bytes from 192.168.3.1 to 192.168.3.32: icmp_seq=3 ttl=64 time=1.44 ms
+inspiron:~$ net dns www.baidu.com
+Query for 'www.baidu.com' sent.
+dns: 103.235.46.115
+dns: 103.235.46.102
+dns: All results received
+inspiron:~$ net ping 103.235.46.115
+PING 103.235.46.115
+28 bytes from 103.235.46.115 to 192.168.3.32: icmp_seq=1 ttl=48 time=80.45 ms
+28 bytes from 103.235.46.115 to 192.168.3.32: icmp_seq=2 ttl=48 time=80.75 ms
+Ping timeout
+inspiron:~$ net ping 103.235.46.102
+PING 103.235.46.102
+28 bytes from 103.235.46.102 to 192.168.3.32: icmp_seq=1 ttl=46 time=193.77 ms
+28 bytes from 103.235.46.102 to 192.168.3.32: icmp_seq=2 ttl=46 time=172.29 ms
+28 bytes from 103.235.46.102 to 192.168.3.32: icmp_seq=3 ttl=46 time=196.20 ms
 ```
 
 # pinctrl
