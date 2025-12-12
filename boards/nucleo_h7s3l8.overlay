@@ -27,6 +27,10 @@
 	hpre = <2>;
 };
 
+&clk_hsi48 {
+	status = "okay";
+};
+
 &die_temp {
 	status = "okay";
 };
