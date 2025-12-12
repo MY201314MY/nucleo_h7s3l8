@@ -1,4 +1,4 @@
-###### witth mcuboot
+# with mcuboot
 
 ```shell
 west build -b nucleo_h7s3l8 --sysbuild -p
@@ -102,17 +102,24 @@ arch_cpu_idle () at /home/pi/zephyr/zephyr/arch/arm/core/cortex_m/cpu_idle.c:104
 (gdb) 
 ```
 
-partition
+# partition
 
-```c
+```shell
+# image-0
 hex(8*1024*1024+384)
+# image-1
 hex(8*1024*1024+4096)
+# image-scratch
 hex(8*1024*1024*2+4096*2)
+# storage
 hex(8*1024*1024*2+4096*2+64*1024)
 ```
 
-CAN BUS
-```c
+# can bus
+
+```shell
+#1.start can bus
+
 inspiron:~$ can start can@4000a000 
 starting can@4000a000
 
@@ -135,6 +142,35 @@ inspiron:~$ can send can@4000a000 010 1 2 3 4 5 6 7 8
 enqueuing CAN frame #0 with standard (11-bit) CAN ID 0x010, RTR 0, CAN FD 0, BRS 0, DLC 8
 failed to send CAN frame #0 (err -114)
 [00:05:36.731,000] <dbg> can_mcan: can_mcan_send: Sending 8 bytes. Id: 0x10, ID type: standard
+
+# standard
+inspiron:~$ can send can@4000a000 010 1 2 3 4 5 6 7 8
+enqueuing CAN frame #11 with standard (11-bit) CAN ID 0x010, RTR 0, CAN FD 0, BRS 0, DLC 8
+CAN frame #11 successfully sent
+[00:21:32.098,000] <dbg> can_mcan: can_mcan_send: Sending 8 bytes. Id: 0x10, ID type: standard
+
+# add filter
+inspiron:~$ can filter add can@4000a000 123
+can@4000a000  --       123   [8]  11 22 33 44 55 66 77 99 
+[00:12:01.777,000] <dbg> can_mcan: can_mcan_line_1_isr: RX FIFO0 INT
+[00:12:01.777,000] <dbg> can_mcan: can_mcan_get_message: Frame on filter 0, ID: 0x123
+
+# CAN FD
+inspiron:~$ can stop can@4000a000 
+stopping can@4000a000
+inspiron:~$ can mode can@4000a000 fd
+setting mode 0x00000004
+inspiron:~$ can start can@4000a000
+starting can@4000a000
+
+inspiron:~$ can send can@4000a000 -f 123 11 22
+enqueuing CAN frame #7 with standard (11-bit) CAN ID 0x123, RTR 0, CAN FD 1, BRS 0, DLC 2
+CAN frame #7 successfully sent
+[00:16:41.168,000] <dbg> can_mcan: can_mcan_send: Sending 2 bytes. Id: 0x123, ID type: standard  FD frame 
+
+can@4000a000  --       123  [12]  11 22 33 44 55 66 77 88 aa bb 00 00 
+[00:20:13.476,000] <dbg> can_mcan: can_mcan_line_1_isr: RX FIFO0 INT
+[00:20:13.476,000] <dbg> can_mcan: can_mcan_get_message: Frame on filter 0, ID: 0x123
 ```
 
 # pinctrl
@@ -151,13 +187,13 @@ B05 SPI1_MOSI
 G06 ETH_RMII_REF_CLK
 B07 LED3
 B08 I2C1_SCL
-B09 I2C1_SDA 
+B09 I2C1_SDA
 B14 USART1_TX
 C13 button
 C14 LSE
 C15 LSE
 D00 FDCAN1_RX
-D01 FDCAN1_TX 
+D01 FDCAN1_TX
 D08 USART3_TX
 D09 USART3_RX
 D10 LED1
