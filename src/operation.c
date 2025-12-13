@@ -47,11 +47,11 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
             return -ENODEV;
         }
         if (sensor_sample_fetch(dev) < 0) {
-			LOG_ERR("temperature sensor sample update error\n");
+			LOG_ERR("temperature sensor sample update error");
 			return -EAGAIN;
 		}
         sensor_channel_get(dev, SENSOR_CHAN_DIE_TEMP, &temp);
-        LOG_INF("temperature: %.1f C\n", sensor_value_to_double(&temp));
+        LOG_INF("temperature: %.1f C", sensor_value_to_double(&temp));
 
     } else if(operation == 2) {
         const struct device *dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));

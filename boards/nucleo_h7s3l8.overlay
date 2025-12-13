@@ -43,6 +43,12 @@
 	status = "okay";
 };
 
+&fdcan2 {
+	pinctrl-0 = <&fdcan2_rx_pb12 &fdcan2_tx_pb13>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
 /delete-node/ &scratch_partition;
 /delete-node/ &slot0_partition;
 /delete-node/ &slot1_partition;
