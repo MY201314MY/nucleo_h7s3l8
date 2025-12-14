@@ -34,9 +34,6 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 static struct net_mgmt_event_callback mgmt_cb;
 
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
-static const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
-
 static void dhcpv4_client(struct net_if *iface, void *user_data)
 {
 	ARG_UNUSED(user_data);
@@ -92,9 +89,6 @@ int main(void)
 	LOG_INF("frequency : %d MHz (Cortex-M7)", sys_clock_hw_cycles_per_sec()/1000000);
 
 	gpio_pin_configure_dt(&led0, GPIO_OUTPUT_INACTIVE);
-	gpio_pin_configure_dt(&led1, GPIO_OUTPUT_INACTIVE);
-	gpio_pin_configure_dt(&led2, GPIO_OUTPUT_INACTIVE);
-
 	net_mgmt_init_event_callback(&mgmt_cb, handler,
 				     NET_EVENT_IPV4_ADDR_ADD | NET_EVENT_IPV4_ADDR_DEL);
 	net_mgmt_add_event_callback(&mgmt_cb);
@@ -105,16 +99,6 @@ int main(void)
 		gpio_pin_toggle_dt(&led0);
 		k_sleep(K_MSEC(LED_DELAY_MS));
 		gpio_pin_toggle_dt(&led0);
-		k_sleep(K_MSEC(LED_DELAY_MS));
-
-		gpio_pin_toggle_dt(&led1);
-		k_sleep(K_MSEC(LED_DELAY_MS));
-		gpio_pin_toggle_dt(&led1);
-		k_sleep(K_MSEC(LED_DELAY_MS));
-
-		gpio_pin_toggle_dt(&led2);
-		k_sleep(K_MSEC(LED_DELAY_MS));
-		gpio_pin_toggle_dt(&led2);
 		k_sleep(K_MSEC(LED_DELAY_MS));
 	}
 	

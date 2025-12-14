@@ -9,6 +9,14 @@
  * for running the application in external NOR from MCUboot
  */
 / {
+	aliases {
+		/delete-property/ led0;
+    	/delete-property/ led1;
+		/delete-property/ led2;
+
+		led0 = &red_led;
+	};
+
 	chosen {
 		zephyr,flash = &mx25uw25645;
 		zephyr,flash-controller = &mx25uw25645;
@@ -48,6 +56,34 @@
 	pinctrl-names = "default";
 	status = "okay";
 };
+
+&timers1 {
+	status = "okay";
+
+	pwm1 {
+		compatible = "st,stm32-pwm";
+		pinctrl-0 = <&tim1_ch4_pd10>;
+		pinctrl-names = "default";
+		status = "okay";
+		#pwm-cells = <3>;
+	};
+};
+
+&timers4 {
+	status = "okay";
+
+	pwm4 {
+		compatible = "st,stm32-pwm";
+		pinctrl-0 = <&tim4_ch2_pd13>;
+		pinctrl-names = "default";
+		status = "okay";
+		#pwm-cells = <3>;
+	};
+};
+
+/delete-node/ &green_led;
+/delete-node/ &yellow_led;
+
 
 /delete-node/ &scratch_partition;
 /delete-node/ &slot0_partition;
