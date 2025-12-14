@@ -1,9 +1,26 @@
 #include <netdb.h>
+#include <zephyr/kernel.h>
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/net/tls_credentials.h>
 #include <zephyr/net/http/client.h>
 #include <zephyr/shell/shell.h>
+#include <zephyr/posix/sys/socket.h>
+#include <zephyr/posix/unistd.h>
+#include <zephyr/device.h>
+#include <zephyr/kernel.h>
+#include <zephyr/net/socket.h>
+#include <zephyr/net/net_if.h>
+#include <zephyr/net/dns_resolve.h>
+#include <zephyr/pm/device.h>
+#include <zephyr/pm/device_runtime.h>
+#include <string.h>
+
+#include <zephyr/posix/netinet/in.h>
+#include <zephyr/posix/sys/socket.h>
+#include <zephyr/posix/arpa/inet.h>
+#include <zephyr/posix/unistd.h>
+#include <zephyr/posix/poll.h>
 
 #include "certs.h"
 
@@ -21,7 +38,7 @@ uint8_t HTTPS_HOST[128] = "www.example.com";
 static uint8_t recv_buf_ipv4[MAX_RECV_BUF_LEN];
 
 
-static void response_cb(struct http_response *rsp,
+static int response_cb(struct http_response *rsp,
 			enum http_final_call final_data,
 			void *user_data)
 {
@@ -37,6 +54,8 @@ static void response_cb(struct http_response *rsp,
 
 	LOG_INF("Response to %s", (const char *)user_data);
 	LOG_INF("Response status %s", rsp->http_status);
+
+    return 0;
 }
 
 /* It's useless for host : www.example.com. */
@@ -132,7 +151,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 		req.method = HTTP_GET;
 		req.url = "/";
 		req.header_fields = head;
-		req.host = HTTP_GET;
+		req.host = HTTPS_HOST;
 		req.protocol = "HTTP/1.1";
 		req.response = response_cb;
 		req.recv_buf = recv_buf_ipv4;
