@@ -5,18 +5,18 @@
  */
 
 /*
-commit cb2109e7d9241922f5e534f98e4f083caf4471e2 (HEAD -> main, origin/main, origin/HEAD)
-Author: Anuj Pathak <anuj@croxel.com>
-Date:   Mon Oct 13 17:21:45 2025 +0530
+commit bbff45f1c4cf7d3baa068294a30fc490d692bdb4 (HEAD -> main, origin/main, origin/HEAD)
+Author: Kyle Bonnici <kylebonnici@hotmail.com>
+Date:   Thu Dec 11 15:06:39 2025 +0100
 
-    samples: drivers: i2s: echo: add MAX32655 support
+    DTS: format files using dts-linter 0.3.7-hotfix2
     
-    - reduced block length from 100ms to 33.33ms to compile for low ram
-    - add compile time conditional option to slave mode
-    - add overlay file for max32655fthr
+    - Ensure that properties have 2 new lines when node is above it.
+    - Enures that 1 new line is required between a node and #if/#ifdef...
+    - Enures that 2 new line are required between #endif and node.
+    - Wraps property values that exceed 100 characters in length.
     
-    Signed-off-by: Anuj Pathak <anuj@croxel.com>
-
+    Signed-off-by: Kyle Bonnici <kylebonnici@hotmail.com>
 */
 #include <zephyr/kernel.h>
 #include <zephyr/linker/linker-defs.h>
