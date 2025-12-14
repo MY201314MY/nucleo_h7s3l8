@@ -31,7 +31,8 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 #define LED_DELAY_MS 100
 
-static struct net_mgmt_event_callback mgmt_cb;
+static struct net_mgmt_event_callback net_mgmt_cb;
+static struct net_mgmt_event_callback iface_mgmt_cb;
 
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 static void dhcpv4_client(struct net_if *iface, void *user_data)
@@ -43,7 +44,7 @@ static void dhcpv4_client(struct net_if *iface, void *user_data)
 	net_dhcpv4_start(iface);
 }
 
-static void handler(struct net_mgmt_event_callback *cb,
+static void net_handler(struct net_mgmt_event_callback *cb,
 		    uint64_t mgmt_event,
 		    struct net_if *iface)
 {
@@ -79,6 +80,28 @@ static void handler(struct net_mgmt_event_callback *cb,
 	{
 		LOG_INF("net ipv4 deleted.");
 	}
+	else if(mgmt_event == NET_EVENT_IF_UP)
+	{
+		LOG_INF("net if up.");
+	}
+	else if(mgmt_event == NET_EVENT_IF_DOWN)
+	{
+		LOG_INF("net if down.");
+	}
+}
+
+static void iface_handler(struct net_mgmt_event_callback *cb,
+		    uint64_t mgmt_event,
+		    struct net_if *iface)
+{
+	if(mgmt_event == NET_EVENT_IF_UP)
+	{
+		LOG_INF("net if up.");
+	}
+	else if(mgmt_event == NET_EVENT_IF_DOWN)
+	{
+		LOG_INF("net if down.");
+	}
 }
 
 int main(void)
@@ -89,9 +112,13 @@ int main(void)
 	LOG_INF("frequency : %d MHz (Cortex-M7)", sys_clock_hw_cycles_per_sec()/1000000);
 
 	gpio_pin_configure_dt(&led0, GPIO_OUTPUT_INACTIVE);
-	net_mgmt_init_event_callback(&mgmt_cb, handler,
+	net_mgmt_init_event_callback(&net_mgmt_cb, net_handler,
 				     NET_EVENT_IPV4_ADDR_ADD | NET_EVENT_IPV4_ADDR_DEL);
-	net_mgmt_add_event_callback(&mgmt_cb);
+	net_mgmt_add_event_callback(&net_mgmt_cb);
+	
+	net_mgmt_init_event_callback(&iface_mgmt_cb, iface_handler,
+				     NET_EVENT_IF_UP | NET_EVENT_IF_DOWN);
+	net_mgmt_add_event_callback(&iface_mgmt_cb);
 
 	net_if_foreach(dhcpv4_client, NULL);
 
