@@ -7,7 +7,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(protocol_commands,
 	SHELL_CMD(sntp, NULL,
 		"sntp request",
 		example_sntp_request),
-	SHELL_CMD(https, NULL,
+	SHELL_CMD(http, NULL,
 		"http request",
 		example_http_request),
 	SHELL_SUBCMD_SET_END

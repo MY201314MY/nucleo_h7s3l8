@@ -29,20 +29,21 @@ static int response_cb(struct http_response *rsp,
 			void *user_data)
 {
 	if (final_data == HTTP_DATA_MORE) {
-		LOG_INF("Partial data received (%zd bytes)", rsp->data_len);
-        LOG_HEXDUMP_DBG(rsp->recv_buf, rsp->data_len, "http recv");
-	} else if (final_data == HTTP_DATA_FINAL) {
-		LOG_INF("All the data received (%zd bytes)", rsp->data_len);
-        LOG_HEXDUMP_DBG(rsp->recv_buf, rsp->data_len, "http recv");
+		LOG_INF("partial data received (%zd bytes)", rsp->data_len);
+        LOG_HEXDUMP_DBG(rsp->recv_buf, rsp->data_len<64?rsp->data_len:64, "http recv");
+	}
+	else if (final_data == HTTP_DATA_FINAL) {
+		LOG_INF("all the data received (%zd bytes)", rsp->data_len);
+        LOG_HEXDUMP_DBG(rsp->recv_buf, rsp->data_len<64?rsp->data_len:64, "http recv");
 	}
 
-	LOG_INF("Response to %s", (const char *)user_data);
-	LOG_INF("Response status %s", rsp->http_status);
+	LOG_INF("response to %s", (const char *)user_data);
+	LOG_INF("response status %s", rsp->http_status);
 
 	return 0;
 }
 
-extern int example_http_request(const struct shell *sh, size_t argc, char *argv[])
+int example_http_request(const struct shell *sh, size_t argc, char *argv[])
 {
 	int fd = -1;
 	int32_t timeout = 30 * MSEC_PER_SEC;
@@ -62,7 +63,7 @@ extern int example_http_request(const struct shell *sh, size_t argc, char *argv[
 	struct addrinfo *res;
 	char peer_addr[INET_ADDRSTRLEN];
 
-	printk("Looking up %s\n", HTTP_HOST);
+	printk("looking up %s\n", HTTP_HOST);
 	int ret = getaddrinfo(HTTP_HOST, HTTP_PORT, &hints, &res);
     if(ret<0)
     {
@@ -75,12 +76,12 @@ extern int example_http_request(const struct shell *sh, size_t argc, char *argv[
 
 	inet_ntop(res->ai_family, &((struct sockaddr_in *)(res->ai_addr))->sin_addr, peer_addr,
 		  INET_ADDRSTRLEN);
-	LOG_INF("Resolved %s (%s)\n", peer_addr, net_family2str(res->ai_family));
+	LOG_INF("resolved %s (%s)\n", peer_addr, net_family2str(res->ai_family));
 
     fd = socket(res->ai_family, SOCK_STREAM, res->ai_protocol);
 
 	if (fd < 0) {
-		LOG_ERR("Cannot create HTTP connection(%d).", -errno);
+		LOG_ERR("cannot create HTTP connection(%d).", -errno);
 		return -ECONNABORTED;
 	}
 
