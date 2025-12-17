@@ -4,6 +4,7 @@
 #include <zephyr/sys/reboot.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/can.h>
+#include <zephyr/drivers/spi.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(operation, LOG_LEVEL_DBG);
@@ -53,7 +54,8 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
         sensor_channel_get(dev, SENSOR_CHAN_DIE_TEMP, &temp);
         LOG_INF("temperature: %.1f C", sensor_value_to_double(&temp));
 
-    } else if(operation == 2) {
+    }
+    else if(operation == 2) {
         const struct device *dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
         struct can_bus_err_cnt err_cnt = {0, 0};
         enum can_state state;
@@ -66,7 +68,33 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
         {
             LOG_INF("can bus state : %s", can_bus_state_to_str(state));
         }
-    } else {
+    }
+    else if(operation == 3)
+    {
+        const struct spi_dt_spec spim = SPI_DT_SPEC_GET(DT_NODELABEL(spim_dt), SPI_OP_MODE_MASTER | SPI_WORD_SET(8));
+        uint8_t tx_buffer[1] = {0x90};
+        uint8_t rx_buffer[3] = {0x00, 0x00, 0x00};
+        struct spi_buf tx_spi_bufs = {.buf = tx_buffer, .len = sizeof(tx_buffer)};
+        struct spi_buf rx_spi_bufs = {.buf = rx_buffer, .len = sizeof(rx_buffer)};
+        struct spi_buf_set tx_spi_buf_set = {.buffers = &tx_spi_bufs, .count = 1};
+        struct spi_buf_set rx_spi_buf_set = {.buffers = &rx_spi_bufs, .count = 1};
+
+        bool status = spi_is_ready_dt(&spim);
+        if(status != true)
+        {
+            LOG_ERR("spi device is not ready");
+        }
+
+        int ret = spi_transceive_dt(&spim, &tx_spi_buf_set, &rx_spi_buf_set);
+
+        if (ret < 0) {
+            LOG_ERR("spi_transceive returned %d", ret);
+            return ret;
+        }
+
+        LOG_HEXDUMP_INF(rx_buffer, sizeof(rx_buffer), "RX");
+    }
+    else {
         LOG_DBG("unknown operation");
     }
 
