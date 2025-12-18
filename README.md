@@ -253,6 +253,26 @@ PING 103.235.46.102
 28 bytes from 103.235.46.102 to 192.168.3.32: icmp_seq=3 ttl=46 time=196.20 ms
 ```
 
+# SPI
+
+## read w25qxx id
+
+```shell
+inspiron:~$ spi conf spim_dt 8000000
+inspiron:~$ spi transceive spim_dt 0x9F 0x00 0x00 0x00
+TX:
+00000000: 9f 00 00 00                                      |....             |
+RX:
+00000000: 00 ef 40 17                                      |..@.             |
+inspiron:~$ spi conf spim_dt 1171875
+inspiron:~$ spi transceive spim_dt 0x9F 0x00 0x00 0x00
+TX:
+00000000: 9f 00 00 00                                      |....             |
+RX:
+00000000: 00 ef 40 17                                      |..@.             |
+
+```
+
 # pinctrl
 
 ```shell

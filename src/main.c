@@ -107,6 +107,7 @@ static void iface_handler(struct net_mgmt_event_callback *cb,
 int main(void)
 {
 	LOG_INF("app start address: 0x%p", (void *)__rom_region_start);
+	LOG_INF("arch : %s", CONFIG_ARCH);
 	LOG_INF("soc : %s", CONFIG_BOARD_QUALIFIERS);
 	LOG_INF("board : %s", CONFIG_BOARD);
 	LOG_INF("frequency : %d MHz (Cortex-M7)", sys_clock_hw_cycles_per_sec()/1000000);
