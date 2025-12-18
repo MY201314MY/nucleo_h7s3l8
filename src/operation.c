@@ -72,8 +72,9 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
     else if(operation == 3)
     {
         const struct spi_dt_spec spim = SPI_DT_SPEC_GET(DT_NODELABEL(spim_dt), SPI_OP_MODE_MASTER | SPI_WORD_SET(8));
-        uint8_t tx_buffer[1] = {0x90};
-        uint8_t rx_buffer[3] = {0x00, 0x00, 0x00};
+        uint8_t tx_buffer[1] = {0x9F};
+        uint8_t rx_buffer[4] = {0x00, 0x00, 0x00, 0x00};
+
         struct spi_buf tx_spi_bufs = {.buf = tx_buffer, .len = sizeof(tx_buffer)};
         struct spi_buf rx_spi_bufs = {.buf = rx_buffer, .len = sizeof(rx_buffer)};
         struct spi_buf_set tx_spi_buf_set = {.buffers = &tx_spi_bufs, .count = 1};
@@ -91,8 +92,8 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
             LOG_ERR("spi_transceive returned %d", ret);
             return ret;
         }
-
-        LOG_HEXDUMP_INF(rx_buffer, sizeof(rx_buffer), "RX");
+        ret = sizeof(tx_buffer);
+        LOG_HEXDUMP_INF(((uint8_t *)rx_spi_bufs.buf) + 1, rx_spi_bufs.len - 1, "w25q64fv id");
     }
     else {
         LOG_DBG("unknown operation");
