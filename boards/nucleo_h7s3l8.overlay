@@ -24,6 +24,14 @@
 	};
 
 	soc {
+		backup_sram: memory@38800000 {
+			compatible = "zephyr,memory-region", "st,stm32-backup-sram";
+			reg = <0x38800000 DT_SIZE_K(4)>;
+			clocks = <&rcc STM32_CLOCK(AHB4, 28)>;
+			zephyr,memory-region = "BACKUP_SRAM";
+			status = "okay";
+		};
+
 		rtc: rtc@58004000 {
 			compatible = "st,stm32-rtc";
 			reg = <0x58004000 0x400>;
@@ -34,6 +42,12 @@
 			alarms-count = <2>;
 			alrm-exti-line = <17>;
 			status = "okay";
+
+			bbram: backup_regs {
+				compatible = "st,stm32-bbram";
+				st,backup-regs = <32>;
+				status = "okay";
+			};
 		};
 	};
 };

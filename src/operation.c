@@ -111,6 +111,10 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
             time.tm_year+1900, time.tm_mon+1, time.tm_mday,
             time.tm_hour, time.tm_min, time.tm_sec, time.tm_nsec/USEC_PER_SEC);
     }
+    else if(operation == 5)
+    {
+        
+    }
     else {
         LOG_DBG("unknown operation");
     }
