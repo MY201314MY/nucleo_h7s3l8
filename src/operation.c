@@ -1,10 +1,12 @@
-#include <zephyr/kernel.h>
 #include <stdlib.h>
+#include <zephyr/syscalls/time_units.h>
+#include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/sys/reboot.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/can.h>
 #include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/rtc.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(operation, LOG_LEVEL_DBG);
@@ -94,6 +96,20 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
         }
         ret = sizeof(tx_buffer);
         LOG_HEXDUMP_INF(((uint8_t *)rx_spi_bufs.buf) + 1, rx_spi_bufs.len - 1, "w25q64fv id");
+    }
+    else if(operation == 4)
+    {
+        const struct device *dev = DEVICE_DT_GET(DT_NODELABEL(rtc));
+        struct rtc_time time;
+        int ret = rtc_get_time(dev, &time);
+        if (ret < 0) {
+            LOG_ERR("rtc_get_time failed: %d", ret);
+            return ret;
+        }
+
+        LOG_INF("time : %04d-%02d-%02d %02d:%02d:%02d.%03d",
+            time.tm_year+1900, time.tm_mon+1, time.tm_mday,
+            time.tm_hour, time.tm_min, time.tm_sec, time.tm_nsec/USEC_PER_SEC);
     }
     else {
         LOG_DBG("unknown operation");

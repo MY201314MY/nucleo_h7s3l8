@@ -22,6 +22,20 @@
 		zephyr,flash-controller = &mx25uw25645;
 		zephyr,code-partition = &slot0_partition;
 	};
+
+	soc {
+		rtc: rtc@58004000 {
+			compatible = "st,stm32-rtc";
+			reg = <0x58004000 0x400>;
+			interrupts = <32 0>;
+			clocks = <&rcc STM32_CLOCK(APB4, 16)>,
+				<&rcc STM32_SRC_LSE RTC_SEL(1)>;
+			prescaler = <32768>;
+			alarms-count = <2>;
+			alrm-exti-line = <17>;
+			status = "okay";
+		};
+	};
 };
 
 &sram2 {
