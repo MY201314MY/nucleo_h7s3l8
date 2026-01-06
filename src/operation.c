@@ -7,6 +7,8 @@
 #include <zephyr/drivers/can.h>
 #include <zephyr/drivers/spi.h>
 #include <zephyr/drivers/rtc.h>
+#include <zephyr/arch/arm/mpu/arm_mpu.h>
+#include <zephyr/logging/log_ctrl.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(operation, LOG_LEVEL_DBG);
@@ -19,7 +21,7 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
 
     if(operation == 0) {
         LOG_WRN("reboot at once.");
-
+        LOG_PANIC();
         k_sleep(K_MSEC(200));
         sys_reboot(SYS_REBOOT_COLD);
     }
@@ -84,7 +86,40 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
     }
     else if(operation == 5)
     {
+        uint32_t type = MPU->TYPE;
+        uint8_t region_count = (uint8_t)((type & MPU_TYPE_DREGION_Msk) >> MPU_TYPE_DREGION_Pos);
         
+        LOG_INF("--- Hard-Reading MPU Registers (%d slots) ---", region_count);
+        for (uint8_t i = 0; i < region_count; i++) {
+            MPU->RNR = i;
+
+            uint32_t rbar = MPU->RBAR;
+            uint32_t rasr = MPU->RASR;
+
+            if (rasr & MPU_RASR_ENABLE_Msk) {
+                uint32_t addr = rbar & MPU_RBAR_ADDR_Msk;
+                
+                uint8_t size_code = (uint8_t)((rasr & MPU_RASR_SIZE_Msk) >> MPU_RASR_SIZE_Pos);
+                uint32_t size_bytes = 1U << (size_code + 1);
+
+                if (size_code == 31) 
+                {
+                    LOG_INF("region %d: addr: 0x%08X | size: 4GB", i, addr);
+                }
+                else
+                {
+                    LOG_INF("region %d: addr: 0x%08X | size: 0x%08X bytes", i, addr, size_bytes);
+                }
+            }
+        }
+    }
+    else if(operation == 6)
+    {
+        LOG_INF("num regions : %d", mpu_config.num_regions);
+        for(uint8_t i=0;i<mpu_config.num_regions;i++)
+        {
+            LOG_INF("address : 0x%08X", mpu_config.mpu_regions[i].base);
+        }
     }
     else {
         LOG_DBG("unknown operation");
