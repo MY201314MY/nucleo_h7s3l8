@@ -117,6 +117,17 @@
 	};
 };
 
+/*
+	PA8 for mco1 has been used as I2C3_SCL.
+*/
+&mco2 {
+	status = "okay";
+	clocks = <&rcc STM32_SRC_HSE MCO1_SEL(2)>;
+	prescaler = <MCO1_PRE(MCO_PRE_DIV_11)>;
+	pinctrl-0 = <&rcc_mco_2_pc9>;
+	pinctrl-names = "default";
+};
+
 /delete-node/ &green_led;
 /delete-node/ &yellow_led;
 
