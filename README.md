@@ -273,6 +273,11 @@ RX:
 
 ```
 
+ubuntu eth
+```shell
+sudo ufw disable
+```
+
 # pinctrl
 
 ```shell
