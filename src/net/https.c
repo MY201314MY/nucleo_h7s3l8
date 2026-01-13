@@ -25,9 +25,9 @@ LOG_MODULE_REGISTER(_net_https_client, LOG_LEVEL_DBG);
 
 #define HTTPS_PORT "443"
 
-uint8_t HTTPS_HOST[128] = "www.example.com";
+//uint8_t HTTPS_HOST[128] = "www.example.com";
 //uint8_t HTTPS_HOST[128] = "www.baidu.com";
-
+uint8_t HTTPS_HOST[128] = "api.bilibili.com";
 //https://iot-solutions.s3.amazonaws.com/LE910R1_EAG/le910r1_6_0_B003/system_patch_sig_6_0_b002_TO_6.0_b003_EAG.bin_1
 //uint8_t HTTPS_HOST[128] = "iot-solutions.s3.amazonaws.com";
 
@@ -102,7 +102,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 
 	if (fd < 0) {
 		LOG_ERR("Cannot create HTTP connection.");
-		return -ECONNABORTED;
+		goto end;
 	}
 
 	enum {
@@ -123,11 +123,11 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 					 sec_tag_list, sizeof(sec_tag_list));
 	if (ret < 0) {
 		LOG_ERR("Failed to set secure option (%d), ret=%d", -errno, ret);
-		ret = -errno;
+		//goto end;
 	}
 
 	struct timeval tv;
-	tv.tv_sec = 60;
+	tv.tv_sec = 8;
 	tv.tv_usec = 0;
 
 	ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO,
@@ -164,7 +164,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 		memset(&req, 0, sizeof(req));
 
 		req.method = HTTP_GET;
-		req.url = "/";
+		req.url = "/x/relation/stat?vmid=128505057";
 		req.header_fields = head;
 		req.host = HTTPS_HOST;
 		req.protocol = "HTTP/1.1";
@@ -174,10 +174,9 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 
 		ret = http_client_req(fd, &req, timeout, "IPv4 GET");
 		LOG_INF("ret (socket id) : %d", ret);
-
-		close(fd);
 	}
 end:
+	close(fd);
 	freeaddrinfo(res);
 
 	LOG_INF("--- END ---");
