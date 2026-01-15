@@ -9,6 +9,7 @@
 #include <zephyr/drivers/rtc.h>
 #include <zephyr/arch/arm/mpu/arm_mpu.h>
 #include <zephyr/logging/log_ctrl.h>
+#include <zephyr/sys/sys_heap.h>
 #include <stm32h7rsxx.h>
 
 #include <zephyr/logging/log.h>
@@ -174,6 +175,14 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
     else if(operation == 8)
     {
         LOG_INF("HAL tick : %d", HAL_GetTick(   ));
+    }
+    else if(operation == 9)
+    {
+        extern struct k_heap _system_heap;
+        struct sys_memory_stats stats;
+
+        sys_heap_runtime_stats_get(&_system_heap.heap, &stats);
+        LOG_INF("heap allocated=%d, free=%d, max allocated:%d", stats.allocated_bytes, stats.free_bytes, stats.max_allocated_bytes);
     }
     else {
         LOG_DBG("unknown operation");
