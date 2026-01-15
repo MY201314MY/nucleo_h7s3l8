@@ -75,8 +75,8 @@ int example_http_request(const struct shell *sh, size_t argc, char *argv[])
 	for(index=res;index != NULL; index=index->ai_next)
 	{
 		LOG_INF("addrinfo @%p : ai_family=%d, ai_socktype=%d, ai_protocol=%d, sa_family=%d, sin_port=%x\n",
-        res, res->ai_family, res->ai_socktype, res->ai_protocol, res->ai_addr->sa_family,
-        ((struct sockaddr_in *)res->ai_addr)->sin_port);
+        index, index->ai_family, index->ai_socktype, index->ai_protocol, index->ai_addr->sa_family,
+        ((struct sockaddr_in *)index->ai_addr)->sin_port);
 
 		inet_ntop(index->ai_family, &net_sin(index->ai_addr)->sin_addr, addr,
 			sizeof(addr));
