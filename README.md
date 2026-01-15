@@ -278,6 +278,43 @@ ubuntu eth
 sudo ufw disable
 ```
 
+PATCH
+```c
+diff --git zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c
+index 02bb198cb74..9a2db87be71 100644
+--- zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c
++++ zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c
+@@ -40,6 +40,7 @@ static const struct arm_mpu_region mpu_regions[] = {
+ 	MPU_REGION_ENTRY("SRAM_ETH_DESC", DT_REG_ADDR(sram_eth_node), REGION_PPB_ATTR(REGION_256B)),
+ #endif
+ #endif
++		MPU_REGION_ENTRY("BACKUP_SRAM", 0x38800000, REGION_RAM_ATTR(REGION_4K)),
+ };
+ 
+ const struct arm_mpu_config mpu_config = {
+diff --git zephyr/subsys/net/lib/sockets/sockets_inet.c zephyr/subsys/net/lib/sockets/sockets_inet.c
+index ae47f2aba8a..6a58c20d74c 100644
+--- zephyr/subsys/net/lib/sockets/sockets_inet.c
++++ zephyr/subsys/net/lib/sockets/sockets_inet.c
+@@ -95,7 +95,7 @@ static int zsock_socket_internal(int family, int type, int proto)
+ 	int fd = zvfs_reserve_fd();
+ 	struct net_context *ctx;
+ 	int res;
+-
++	NET_ERR("F:%s -- L:%d -- fd:%d\r\n", __func__, __LINE__, fd);
+ 	if (fd < 0) {
+ 		return -1;
+ 	}
+@@ -116,7 +116,7 @@ static int zsock_socket_internal(int family, int type, int proto)
+ 		errno = -res;
+ 		return -1;
+ 	}
+-
++	NET_ERR("F:%s -- L:%d -- ret:%d\r\n", __func__, __LINE__, res);
+ 	/* Initialize user_data, all other calls will preserve it */
+ 	ctx->user_data = NULL;
+```
+
 # pinctrl
 
 ```shell

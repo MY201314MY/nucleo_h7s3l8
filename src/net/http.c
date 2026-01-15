@@ -57,59 +57,66 @@ int example_http_request(const struct shell *sh, size_t argc, char *argv[])
 	
 
     static struct addrinfo hints = {
-		.ai_flags = AI_NUMERICSERV,
+		.ai_family = AF_INET,
+		.ai_protocol = IPPROTO_TCP,
 		.ai_socktype = SOCK_STREAM,
 	};
-	struct addrinfo *res;
-	char peer_addr[INET_ADDRSTRLEN];
+	struct addrinfo *res, *index;
+	char addr[64];
 
 	LOG_INF("looking up %s\n", HTTP_HOST);
 	int ret = getaddrinfo(HTTP_HOST, HTTP_PORT, &hints, &res);
-    if(ret<0)
+    if(ret != 0)
     {
         LOG_ERR("getaddrinfo error ret : %d", ret);
         goto end;
     }
-    LOG_INF("addrinfo @%p : ai_family=%d, ai_socktype=%d, ai_protocol=%d, sa_family=%d, sin_port=%x\n",
+
+	for(index=res;index != NULL; index=index->ai_next)
+	{
+		LOG_INF("addrinfo @%p : ai_family=%d, ai_socktype=%d, ai_protocol=%d, sa_family=%d, sin_port=%x\n",
         res, res->ai_family, res->ai_socktype, res->ai_protocol, res->ai_addr->sa_family,
         ((struct sockaddr_in *)res->ai_addr)->sin_port);
 
-	inet_ntop(res->ai_family, &((struct sockaddr_in *)(res->ai_addr))->sin_addr, peer_addr,
-		  INET_ADDRSTRLEN);
-	LOG_INF("resolved %s (%s)\n", peer_addr, net_family2str(res->ai_family));
+		inet_ntop(index->ai_family, &net_sin(index->ai_addr)->sin_addr, addr,
+			sizeof(addr));
+		LOG_INF("resolved %s (%s)\n", addr, net_family2str(index->ai_family));
 
-    fd = socket(res->ai_family, SOCK_STREAM, res->ai_protocol);
+    	fd = socket(index->ai_family, index->ai_socktype, index->ai_protocol);
 
-	if (fd < 0) {
-		LOG_ERR("cannot create HTTP connection(%d).", -errno);
-		goto end;
-	}
+		if (fd < 0) {
+			LOG_ERR("cannot create HTTP connection(%d).", -errno);
+			continue;
+		}
 
-	struct timeval tv;
-	tv.tv_sec = 8;
-	tv.tv_usec = 0;
+		struct timeval tv;
+		tv.tv_sec = 8;
+		tv.tv_usec = 0;
 
-	ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO,
-					 &tv, sizeof(tv));
-	if (ret < 0) {
-		LOG_ERR("Failed to set socket receive timeout(%d), ret=%d", -errno, ret);
-		goto end;
-	}
+		ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO,
+						&tv, sizeof(tv));
+		if (ret < 0) {
+			LOG_ERR("failed to set socket receive timeout(%d), ret=%d", -errno, ret);
+			close(fd);
+			continue;
+		}
 
-	ret = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO,
-					 &tv, sizeof(tv));
-	if (ret < 0) {
-		LOG_ERR("Failed to set socket transmit timeout(%d), ret=%d", -errno, ret);
-		goto end;
-	}
+		ret = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO,
+						&tv, sizeof(tv));
+		if (ret < 0) {
+			LOG_ERR("failed to set socket transmit timeout(%d), ret=%d", -errno, ret);
+			close(fd);
+			continue;
+		}
 
-    ret = connect(fd, res->ai_addr, res->ai_addrlen);
-	if (ret < 0) {
-		LOG_ERR("can't connect to remote host. ret : %d", -errno);
-		goto end;
-	}
+		ret = connect(fd, index->ai_addr, index->ai_addrlen);
+		if (ret < 0) {
+			LOG_ERR("can't connect to remote host. ret : %d", -errno);
+			close(fd);
+			continue;
+		}
 
-	if (fd >= 0) {
+	
 		struct http_request req;
 
 		memset(&req, 0, sizeof(req));
@@ -123,6 +130,9 @@ int example_http_request(const struct shell *sh, size_t argc, char *argv[])
 		req.recv_buf_len = sizeof(recv_buf);
 
 		ret = http_client_req(fd, &req, timeout, "HTTP GET");
+
+		shutdown(fd, SHUT_RDWR);
+		break;
 	}
 end:
 	close(fd);
