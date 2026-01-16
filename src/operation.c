@@ -17,6 +17,7 @@ LOG_MODULE_REGISTER(operation, LOG_LEVEL_DBG);
 
 int example_operations(const struct shell *sh, size_t argc, char *argv[])
 {
+    int ret = -1;
     int operation = atoi(argv[1]);
     
     LOG_DBG("operation %d selected", operation);
@@ -63,7 +64,7 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
             LOG_ERR("spi device is not ready");
         }
 
-        int ret = spi_transceive_dt(&spim, &tx_spi_buf_set, &rx_spi_buf_set);
+        ret = spi_transceive_dt(&spim, &tx_spi_buf_set, &rx_spi_buf_set);
 
         if (ret < 0) {
             LOG_ERR("spi_transceive returned %d", ret);
@@ -76,7 +77,7 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
     {
         const struct device *dev = DEVICE_DT_GET(DT_NODELABEL(rtc));
         struct rtc_time time;
-        int ret = rtc_get_time(dev, &time);
+        ret = rtc_get_time(dev, &time);
         if (ret < 0) {
             LOG_ERR("rtc_get_time failed: %d", ret);
             return ret;
