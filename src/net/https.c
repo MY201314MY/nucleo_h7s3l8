@@ -42,11 +42,13 @@ static int response_cb(struct http_response *rsp,
 			void *user_data)
 {
 	if (final_data == HTTP_DATA_MORE) {
-		LOG_INF("Partial data received (%zd bytes)", rsp->data_len);
-        LOG_HEXDUMP_DBG(rsp->recv_buf, rsp->data_len, "http recv");
 	} else if (final_data == HTTP_DATA_FINAL) {
-		LOG_INF("All the data received (%zd bytes)", rsp->data_len);
-        LOG_HEXDUMP_DBG(rsp->recv_buf, rsp->data_len, "http recv");
+		if(rsp->body_frag_start != NULL)
+        {
+            int length = rsp->data_len - (rsp->body_frag_start - rsp->recv_buf);
+            LOG_INF("http received body length : %d", length);
+            LOG_HEXDUMP_DBG(rsp->body_frag_start, length, "http body recv");
+        }
 	}
 
 	LOG_INF("Response to %s", (const char *)user_data);

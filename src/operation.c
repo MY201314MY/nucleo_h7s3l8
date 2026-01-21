@@ -130,7 +130,7 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
     }
     else if(operation == 8)
     {
-        LOG_INF("HAL tick : %d", HAL_GetTick(   ));
+        LOG_INF("HAL tick : %d", HAL_GetTick());
     }
     else if(operation == 9)
     {
