@@ -14,5 +14,6 @@ target_sources(app PRIVATE src/main.c
     src/operation.c 
     src/net/sntp.c
     src/net/http.c
+    src/net/https.c
     src/net/terminal.c
 )
