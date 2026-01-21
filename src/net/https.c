@@ -117,7 +117,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
             REQUIRED = 2,
         };
 
-        int verify = OPTIONAL;
+        int verify = REQUIRED;
 
         ret = setsockopt(fd, SOL_TLS, TLS_PEER_VERIFY, &verify, sizeof(verify));
         if (ret) {
