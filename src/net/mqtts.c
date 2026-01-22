@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/*
+	https://www.emqx.com/en/mqtt/public-mqtt5-broker
+
+	host / port / Certificate
+*/
 #include "certs.h"
 
 #include <errno.h>
@@ -164,8 +169,8 @@ static ssize_t handle_published_message(const struct mqtt_publish_param *pub)
 		puback.message_id = pub->message_id;
 		mqtt_publish_qos1_ack(&client_ctx, &puback);
 	} break;
-	case MQTT_QOS_2_EXACTLY_ONCE: /* unhandled (not supported by AWS) */
-	case MQTT_QOS_0_AT_MOST_ONCE: /* nothing to do */
+	case MQTT_QOS_2_EXACTLY_ONCE:
+	case MQTT_QOS_0_AT_MOST_ONCE:
 	default:
 		break;
 	}
@@ -198,17 +203,9 @@ static void mqtt_event_cb(struct mqtt_client *client, const struct mqtt_evt *evt
 
 		handle_published_message(pub);
 		messages_received_counter++;
-#if !defined(CONFIG_AWS_TEST_SUITE_RECV_QOS1)
-		do_publish = true;
-#endif
 	} break;
 
-	case MQTT_EVT_SUBACK: {
-#if !defined(CONFIG_AWS_TEST_SUITE_RECV_QOS1)
-		do_publish = true;
-#endif
-	} break;
-
+	case MQTT_EVT_SUBACK:
 	case MQTT_EVT_PUBACK:
 	case MQTT_EVT_DISCONNECT:
 	case MQTT_EVT_PUBREC:
@@ -221,7 +218,7 @@ static void mqtt_event_cb(struct mqtt_client *client, const struct mqtt_evt *evt
 	}
 }
 
-static void aws_client_setup(void)
+static void mqtt_client_setup(void)
 {
 	mqtt_client_init(&client_ctx);
 
@@ -267,7 +264,6 @@ static void backoff_context_init(struct backoff_context *bo)
 	bo->max_retries = MAX_RETRIES;
 }
 
-/* https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/ */
 static void backoff_get_next(struct backoff_context *bo, uint32_t *next_backoff_ms)
 {
 	__ASSERT_NO_MSG(bo != NULL);
@@ -276,7 +272,7 @@ static void backoff_get_next(struct backoff_context *bo, uint32_t *next_backoff_
 	*next_backoff_ms = BACKOFF_CONST_MS;
 }
 
-static int aws_client_try_connect(void)
+static int mqtt_client_try_connect(void)
 {
 	int ret;
 	uint32_t backoff_ms;
@@ -318,15 +314,15 @@ static int publish(void)
 			       strlen(buffer));
 }
 
-void aws_client_loop(void)
+void mqtt_client_loop(void)
 {
 	int rc;
 	int timeout;
 	struct pollfd fds;
 
-	aws_client_setup();
+	mqtt_client_setup();
 
-	rc = aws_client_try_connect();
+	rc = mqtt_client_try_connect();
 	if (rc != 0) {
 		goto cleanup;
 	}
@@ -423,7 +419,7 @@ int mqtt_connect_example(void)
 	for (;;) {
 		resolve_broker_addr(&broker_addr_in);
 
-		aws_client_loop();
+		mqtt_client_loop();
 
 #if defined(CONFIG_MBEDTLS_MEMORY_DEBUG)
 		size_t cur_used, cur_blocks, max_used, max_blocks;
