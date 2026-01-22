@@ -84,7 +84,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 	LOG_DBG("request host : %s", HTTPS_HOST);
 
 	int ret = getaddrinfo(HTTPS_HOST, HTTPS_PORT, &hints, &res);
-    if(ret!=0)
+    if(ret != 0)
     {
         LOG_ERR("getaddrinfo error ret : %d", ret);
         goto end;

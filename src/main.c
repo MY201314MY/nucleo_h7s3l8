@@ -130,6 +130,10 @@ int main(void)
 
 	net_if_foreach(dhcpv4_client, NULL);
 
+	k_sleep(K_SECONDS(3));
+	int mqtt_connect_example(void);
+	mqtt_connect_example();
+
 	while (1) {
 		gpio_pin_toggle_dt(&led0);
 		k_sleep(K_MSEC(LED_DELAY_MS));

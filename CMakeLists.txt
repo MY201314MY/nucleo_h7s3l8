@@ -15,5 +15,6 @@ target_sources(app PRIVATE src/main.c
     src/net/sntp.c
     src/net/http.c
     src/net/https.c
+    src/net/mqtts.c
     src/net/terminal.c
 )
