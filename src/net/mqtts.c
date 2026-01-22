@@ -314,6 +314,7 @@ static int publish(void)
 			       strlen(buffer));
 }
 
+/* very bery dangerous */
 void mqtt_client_loop(void)
 {
 	int rc;
@@ -412,7 +413,7 @@ static int resolve_broker_addr(struct sockaddr_in *broker)
 	return ret;
 }
 
-int mqtt_connect_example(void)
+int _mqtt_connect_thread_entry(void)
 {
 	setup_credentials();
 

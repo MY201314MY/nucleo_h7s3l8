@@ -131,8 +131,8 @@ int main(void)
 	net_if_foreach(dhcpv4_client, NULL);
 
 	k_sleep(K_SECONDS(3));
-	int mqtt_connect_example(void);
-	mqtt_connect_example();
+	
+	_mqtt_connect_thread_entry();
 
 	while (1) {
 		gpio_pin_toggle_dt(&led0);
