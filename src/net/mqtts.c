@@ -29,6 +29,8 @@
 #include <zephyr/data/json.h>
 #include <zephyr/random/random.h>
 
+#include <zephyr/shell/shell.h>
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(net_mqtts_client_sample, LOG_LEVEL_DBG);
 
@@ -40,11 +42,9 @@ LOG_MODULE_REGISTER(net_mqtts_client_sample, LOG_LEVEL_DBG);
 #define BROKER_PORT 8883
 
 #define MQTT_BUFFER_SIZE 256u
-#define APP_BUFFER_SIZE	 4096u
+#define APP_BUFFER_SIZE	 1024
 
 #define MAX_RETRIES	    10u
-#define BACKOFF_EXP_BASE_MS 1000u
-#define BACKOFF_EXP_MAX_MS  60000u
 #define BACKOFF_CONST_MS    5000000u
 
 static struct sockaddr_in broker_addr_in;
@@ -314,7 +314,6 @@ static int publish(void)
 			       strlen(buffer));
 }
 
-/* very bery dangerous */
 void mqtt_client_loop(void)
 {
 	int rc;
@@ -436,3 +435,87 @@ int _mqtt_connect_thread_entry(void)
 
 	return 0;
 }
+
+K_THREAD_STACK_DEFINE(mqtts_thread_stack, 4096);
+static struct k_thread m_thread;
+static k_tid_t m_thread_id = NULL;
+
+static int _example_mqtts_connect(const struct shell *sh, size_t argc, char *argv[])
+{
+	if(m_thread_id != NULL)
+	{
+		LOG_WRN("thread has been created.");
+		return 0;
+	}
+    m_thread_id = k_thread_create(&m_thread,
+										mqtts_thread_stack,
+                     					4096,
+                     					(k_thread_entry_t)_mqtt_connect_thread_entry,
+                     					NULL, NULL, NULL,
+                     					K_PRIO_PREEMPT( 8 ), 0, K_NO_WAIT );
+
+	if( m_thread_id != NULL )
+  	{
+    	k_thread_name_set(m_thread_id, "mqtt");
+  	}
+  	else
+  	{
+		LOG_ERR("mqtt thread create failed.");
+  	}
+
+	return 0;
+}
+
+static int _example_mqtts_publish(const struct shell *sh, size_t argc, char *argv[])
+{
+	int ret = publish_message("up", strlen("up"), "HELLO",
+			       strlen("HELLO"));
+	LOG_INF("ret:%d", ret);
+
+	return 0;
+}
+
+static int _example_mqtts_disconnect(const struct shell *sh, size_t argc, char *argv[])
+{
+	if(m_thread_id == NULL)
+	{
+		LOG_WRN("thread has been about.");
+		return 0;
+	}
+
+	LOG_INF("mqtt thread entry:%p", m_thread_id);
+	if(m_thread_id != NULL)
+	{
+		int ret = k_thread_join(&m_thread, K_NO_WAIT);
+
+		if(ret)
+		{
+			k_thread_abort(m_thread_id);
+			LOG_INF( "abort thread mqtt" );
+		}
+
+		mqtt_disconnect(&client_ctx, NULL);
+		close(client_ctx.transport.tcp.sock);
+
+		m_thread_id = NULL;
+	}
+
+	return 0;
+}
+
+SHELL_STATIC_SUBCMD_SET_CREATE(mqtt_commands,
+	SHELL_CMD(connect, NULL,
+		"mqtts connect",
+		_example_mqtts_connect),
+	SHELL_CMD(disconnect, NULL,
+		"mqtts disconnect",
+		_example_mqtts_disconnect),
+	SHELL_CMD(publish, NULL,
+		"mqtts publish a message",
+		_example_mqtts_publish),
+	SHELL_SUBCMD_SET_END
+);
+
+SHELL_CMD_REGISTER(mqtt, &mqtt_commands,
+		   "example for zephyr mqtt", NULL);
+
