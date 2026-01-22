@@ -280,38 +280,39 @@ sudo ufw disable
 
 PATCH
 ```c
+(.venv) pi@inspiron:~/example/zephyr/STMicroelectronics/nucleo_h7s3l8/with_mcuboot$ west diff
 === diff for manifest (zephyr):
 diff --git zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c
 index 02bb198cb74..aaab451cdfc 100644
 --- zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c
 +++ zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c
 @@ -40,6 +40,7 @@ static const struct arm_mpu_region mpu_regions[] = {
- 	MPU_REGION_ENTRY("SRAM_ETH_DESC", DT_REG_ADDR(sram_eth_node), REGION_PPB_ATTR(REGION_256B)),
+        MPU_REGION_ENTRY("SRAM_ETH_DESC", DT_REG_ADDR(sram_eth_node), REGION_PPB_ATTR(REGION_256B)),
  #endif
  #endif
-+	MPU_REGION_ENTRY("BACKUP_SRAM", 0x38800000, REGION_RAM_ATTR(REGION_4K)),
++       MPU_REGION_ENTRY("BACKUP_SRAM", 0x38800000, REGION_RAM_ATTR(REGION_4K)),
  };
  
  const struct arm_mpu_config mpu_config = {
 diff --git zephyr/subsys/net/lib/sockets/sockets_inet.c zephyr/subsys/net/lib/sockets/sockets_inet.c
-index ae47f2aba8a..264ff16f526 100644
+index ae47f2aba8a..7f63ac1d7c4 100644
 --- zephyr/subsys/net/lib/sockets/sockets_inet.c
 +++ zephyr/subsys/net/lib/sockets/sockets_inet.c
 @@ -96,6 +96,7 @@ static int zsock_socket_internal(int family, int type, int proto)
- 	struct net_context *ctx;
- 	int res;
+        struct net_context *ctx;
+        int res;
  
-+	NET_ERR("F:%s -- L:%d -- fd:%d\r\n", __func__, __LINE__, fd);
- 	if (fd < 0) {
- 		return -1;
- 	}
++       NET_INFO("F:%s -- L:%d -- fd:%d\r\n", __func__, __LINE__, fd);
+        if (fd < 0) {
+                return -1;
+        }
 @@ -117,6 +118,7 @@ static int zsock_socket_internal(int family, int type, int proto)
- 		return -1;
- 	}
+                return -1;
+        }
  
-+	NET_ERR("F:%s -- L:%d -- ret:%d\r\n", __func__, __LINE__, res);
- 	/* Initialize user_data, all other calls will preserve it */
- 	ctx->user_data = NULL;
++       NET_INFO("F:%s -- L:%d -- ret:%d\r\n", __func__, __LINE__, res);
+        /* Initialize user_data, all other calls will preserve it */
+        ctx->user_data = NULL;
  
 
 Empty diff in 64 projects.

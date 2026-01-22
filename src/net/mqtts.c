@@ -56,9 +56,6 @@ static uint8_t buffer[APP_BUFFER_SIZE]; /* Shared between published and received
 static struct mqtt_client client_ctx;
 
 static const char mqtt_client_name[] = "nucleo_h7s3l8";
-
-static uint32_t messages_received_counter;
-static bool do_publish;	  /* Trigger client to publish */
 static bool do_subscribe; /* Trigger client to subscribe */
 
 #define CA_CERTIFICATE_TAG 1
@@ -202,7 +199,6 @@ static void mqtt_event_cb(struct mqtt_client *client, const struct mqtt_evt *evt
 		const struct mqtt_publish_param *pub = &evt->param.publish;
 
 		handle_published_message(pub);
-		messages_received_counter++;
 	} break;
 
 	case MQTT_EVT_SUBACK:
@@ -306,7 +302,9 @@ static const struct json_obj_descr json_descr[] = {
 
 static int publish(void)
 {
-	struct publish_payload pl = {.counter = messages_received_counter};
+	static uint32_t messages_received_counter = 0;
+
+	struct publish_payload pl = {.counter = messages_received_counter++};
 
 	json_obj_encode_buf(json_descr, ARRAY_SIZE(json_descr), &pl, buffer, sizeof(buffer));
 
@@ -355,11 +353,6 @@ void mqtt_client_loop(void)
 		} else {
 			LOG_ERR("poll failed: %d", rc);
 			break;
-		}
-
-		if (do_publish) {
-			do_publish = false;
-			publish();
 		}
 
 		if (do_subscribe) {
@@ -468,9 +461,8 @@ static int _example_mqtts_connect(const struct shell *sh, size_t argc, char *arg
 
 static int _example_mqtts_publish(const struct shell *sh, size_t argc, char *argv[])
 {
-	int ret = publish_message("up", strlen("up"), "HELLO",
-			       strlen("HELLO"));
-	LOG_INF("ret:%d", ret);
+	int ret = publish();
+	LOG_INF("publish one message to server, ret:%d", ret);
 
 	return 0;
 }

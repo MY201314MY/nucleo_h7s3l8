@@ -5,18 +5,16 @@
  */
 
 /*
-commit bbff45f1c4cf7d3baa068294a30fc490d692bdb4 (HEAD -> main, origin/main, origin/HEAD)
-Author: Kyle Bonnici <kylebonnici@hotmail.com>
-Date:   Thu Dec 11 15:06:39 2025 +0100
+pi@inspiron:~/zephyr/zephyr$ git log -n 1
+commit 23892b038f6a94f6677318fecbc4df98fc8e2ac5 (HEAD -> nucleo_h7s3l8)
+Author: Thinh Le Cong <thinh.le.xr@bp.renesas.com>
+Date:   Fri Oct 24 13:05:18 2025 +0700
 
-    DTS: format files using dts-linter 0.3.7-hotfix2
+    drivers: serial: fix IAR warning Pe1072 about declaration after a label
     
-    - Ensure that properties have 2 new lines when node is above it.
-    - Enures that 1 new line is required between a node and #if/#ifdef...
-    - Enures that 2 new line are required between #endif and node.
-    - Wraps property values that exceed 100 characters in length.
+    Fix Pe1072 warning (declaration after case label) by wrapping with braces
     
-    Signed-off-by: Kyle Bonnici <kylebonnici@hotmail.com>
+    Signed-off-by: Thinh Le Cong <thinh.le.xr@bp.renesas.com>
 */
 #include <zephyr/kernel.h>
 #include <zephyr/linker/linker-defs.h>
