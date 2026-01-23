@@ -21,7 +21,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(_net_https_client, LOG_LEVEL_DBG);
 
-#define CA_CERTIFICATE_TAG 1
+#define CA_CERTIFICATE_TAG 2
 
 #define HTTPS_PORT "443"
 
@@ -76,14 +76,15 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 	struct addrinfo *res, *index;
 	char addr[64];
 
-    tls_credential_add(CA_CERTIFICATE_TAG,
+    int ret = tls_credential_add(CA_CERTIFICATE_TAG,
                         TLS_CREDENTIAL_CA_CERTIFICATE,
                         ca_certificate,
                         sizeof(ca_certificate));
+    LOG_INF("add cert, ret : %d", ret);
 
 	LOG_DBG("request host : %s", HTTPS_HOST);
 
-	int ret = getaddrinfo(HTTPS_HOST, HTTPS_PORT, &hints, &res);
+	ret = getaddrinfo(HTTPS_HOST, HTTPS_PORT, &hints, &res);
     if(ret != 0)
     {
         LOG_ERR("getaddrinfo error ret : %d", ret);
