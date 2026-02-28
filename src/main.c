@@ -116,6 +116,17 @@ int main(void)
 	LOG_INF("frequency : %d MHz (Cortex-M7)", sys_clock_hw_cycles_per_sec()/1000000);
 	LOG_INF("boot count : %d", backup_boot_count);
 
+	extern int _crypto_atecc608_init();
+	int ret = _crypto_atecc608_init();
+	if(ret == 0)
+	{
+		LOG_INF("ATECC608 init success.");
+	}
+	else
+	{
+		LOG_INF("ATECC608 init failed with ret=%d.", ret);
+	}
+
 	gpio_pin_configure_dt(&led0, GPIO_OUTPUT_INACTIVE);
 
 	net_mgmt_init_event_callback(&net_mgmt_cb, net_handler,

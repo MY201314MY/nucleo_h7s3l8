@@ -253,6 +253,17 @@ PING 103.235.46.102
 28 bytes from 103.235.46.102 to 192.168.3.32: icmp_seq=3 ttl=46 time=196.20 ms
 ```
 
+# I2C
+
+## ATECC608A
+
+```c
+i2c bus at 100k Hz under shell
+
+inspiron:~$ i2c read i2c@40005400 60 0
+00000000: 04 11 33 43 ff ff ff ff  ff ff ff ff ff ff ff ff |..3C.... ........|
+```
+
 # SPI
 
 ## read w25qxx id
