@@ -24,6 +24,7 @@ test_sysbuild()
 target_sources(app PRIVATE src/main.c 
     src/crypto.c 
     src/operation.c 
+    src/ecdsa.c 
     src/net/sntp.c
     src/net/http.c
     src/net/https.c

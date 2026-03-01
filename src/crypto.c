@@ -7,10 +7,10 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(crypto, LOG_LEVEL_DBG);
 
-ATCAIfaceCfg iface_config = {
+static ATCAIfaceCfg iface_config = {
     .iface_type            = ATCA_I2C_IFACE,
     .cfg_data              = (void *)"i2c@40005400",
-    .devtype               = ATECC608B,
+    .devtype               = ATECC608A,
     {
         .atcai2c           = {
         .address       = 0xC0,
@@ -34,7 +34,7 @@ int _crypto_atecc608_init()
     return 0;
 }
 
-int _read_config()
+static int _read_config()
 {
     ATCA_STATUS status;
     uint8_t config[200];
@@ -65,6 +65,161 @@ int _read_config()
     LOG_HEXDUMP_INF(config + 96, 32, "key config");
 
     return 0;
+}
+
+static int _read_data()
+{
+    ATCA_STATUS status;
+    size_t slot_size = 0;
+    uint8_t buffer[512] = {0};
+
+    for(uint16_t slot=9; slot<16;slot++)
+    {
+        status = atcab_get_zone_size(ATCA_ZONE_DATA, slot, &slot_size);
+        if (status != ATCA_SUCCESS) {
+            LOG_ERR("atcab_get_zone_size failed with ret=%d", status);
+            continue;
+        }
+        LOG_INF("slot:%d --- size:%d", slot, slot_size);
+        status = atcab_read_zone(ATCA_ZONE_DATA, slot, 0, 0, buffer, 32);
+
+        if (status == ATCA_SUCCESS) {
+            LOG_HEXDUMP_INF(buffer, 32, "RX");
+        } else if (status == ATCA_NOT_LOCKED) {
+            LOG_WRN("slot not locked\n");
+        } else {
+            LOG_ERR("atcab_read_zone failed with ret=%d", status);
+        }
+    }
+
+    return 0;
+}
+
+static int _write_data()
+{
+    uint8_t key[32] = {0};
+    ATCA_STATUS status;
+
+    for(int i=0; i<32; i++) 
+    {
+        key[i] = i;
+    }
+    status = atcab_write_zone(ATCA_ZONE_DATA, 1, 0, 0, key, 32);
+
+    if (status == ATCA_SUCCESS) {
+        LOG_INF("slot 9 write success.");
+    } else {
+        LOG_ERR("slot 9 write failed with ret=%d", status);
+    }
+
+    return 0;
+}
+
+static int _lock_crypto_atecc608()
+{
+    ATCA_STATUS status;
+    bool is_locked = false;
+
+    if ((status = atcab_is_config_locked(&is_locked)) != ATCA_SUCCESS)
+    {
+        LOG_ERR("atcab_is_config_locked() failed with ret=0x%08X", status);
+    }
+    else
+    {
+        LOG_INF("config zone: %s", is_locked ? "locked" : "unlocked");
+    }
+
+    if(is_locked == true)
+    {
+        return 0;
+    }
+
+    status = atcab_lock_config_zone();
+    if(status == ATCA_SUCCESS)
+    {
+        atcab_wakeup();
+        LOG_INF("ATECC608 locked success.");
+        return 0;
+    }
+    else{
+        
+        LOG_ERR("ATECC608 locked failed with ret=%d", status);
+        return -EAGAIN;
+    }
+}
+
+static int verify_slot9_aes(void) {
+    ATCA_STATUS status;
+    uint8_t plaintext[16] = {0};
+    uint8_t ciphertext[16] = {0};
+    
+    status = atcab_aes_encrypt(1, 0, plaintext, ciphertext);
+
+    if (status == ATCA_SUCCESS) {
+        LOG_INF("AES crypto success.");
+        LOG_HEXDUMP_INF(ciphertext, 16, "AES Ciphertext");
+    } else {
+        LOG_ERR("AES crypto failed with ret=%d", status);
+    }
+
+    return 0;
+}
+
+static int _generate_ecc_key()
+{
+    ATCA_STATUS status;
+    uint8_t buffer[64];
+
+    status = atcab_genkey(0, buffer);
+    if (status == ATCA_SUCCESS) {
+        LOG_INF("ECC genkey on slot 0 success.");
+        LOG_HEXDUMP_INF(buffer, sizeof(buffer), "public key");
+    }
+    else{
+        LOG_ERR("atcab_genkey failed with ret=%d", status);
+    }
+
+    status = atcab_get_pubkey(0, buffer);
+    if(status == ATCA_SUCCESS)
+    {
+        LOG_HEXDUMP_INF(buffer, sizeof(buffer), "public key check");
+    }
+    else
+    {
+        LOG_ERR("atcab_get_pubkey failed with ret=%d", status);
+    }
+
+    return 0;
+}
+
+static int ecc_hardware_test(void) {
+    ATCA_STATUS status;
+    uint8_t pubkey[64];
+    uint8_t msg_hash[32];
+    uint8_t signature[64];
+    memset(msg_hash, 0xAA, 32);
+
+    status = atcab_genkey(1, pubkey);
+    
+    if(status == ATCA_SUCCESS)
+    {
+        LOG_INF("key generate success.");
+        status = atcab_sign(1, msg_hash, signature);
+
+        if (status == ATCA_SUCCESS) {
+            LOG_INF("sign success");
+        }
+        else{
+            LOG_ERR("atcab_sign failed with ret=%d", status);
+        }
+    }
+
+    return 0;
+}
+
+static void ecc_software_test(void) {
+    extern int _ecdsa();
+    _ecdsa();
 }
 
 static int example_crypto_operations(const struct shell *sh, size_t argc, char *argv[])
@@ -128,6 +283,39 @@ static int example_crypto_operations(const struct shell *sh, size_t argc, char *
     else if(operation == 1)
     {
         _read_config();
+    }
+    else if(operation == 2)
+    {
+        _read_data();
+    }
+    else if(operation == 3)
+    {
+        _write_data();
+    }
+    else if(operation == 4)
+    {
+        verify_slot9_aes();
+    }
+    else if(operation == 5)
+    {
+        _generate_ecc_key();
+    }
+    else if(operation == 6)
+    {
+        ecc_hardware_test();
+    }
+    else if(operation == 7)
+    {
+        ecc_software_test();
+    }
+    else if(operation == 10086)
+    {
+    /* 
+        [00:00:09.335,000] <dbg> crypto: example_crypto_operations: operation 10086 selected
+        [00:00:09.349,000] <inf> crypto: config zone: unlocked
+        [00:00:09.380,000] <inf> crypto: ATECC608 locked success.
+    */
+        _lock_crypto_atecc608();
     }
     else 
     {
