@@ -73,7 +73,7 @@ static int _read_data()
     size_t slot_size = 0;
     uint8_t buffer[512] = {0};
 
-    for(uint16_t slot=9; slot<16;slot++)
+    for(uint16_t slot=8; slot<15;slot++)
     {
         status = atcab_get_zone_size(ATCA_ZONE_DATA, slot, &slot_size);
         if (status != ATCA_SUCCESS) {
@@ -115,7 +115,7 @@ static int _write_data()
     return 0;
 }
 
-static int _lock_crypto_atecc608()
+static int _lock_config_crypto_atecc608()
 {
     ATCA_STATUS status;
     bool is_locked = false;
@@ -148,18 +148,53 @@ static int _lock_crypto_atecc608()
     }
 }
 
-static int verify_slot9_aes(void) {
+static int _lock_data_crypto_atecc608()
+{
+    ATCA_STATUS status;
+    bool is_locked = false;
+
+    if ((status = atcab_is_data_locked(&is_locked)) != ATCA_SUCCESS)
+    {
+        LOG_ERR("atcab_is_data_locked() failed with ret=0x%08X", status);
+    }
+    else
+    {
+        LOG_INF("data zone: %s", is_locked ? "locked" : "unlocked");
+    }
+
+    if(is_locked == true)
+    {
+        return 0;
+    }
+
+    status = atcab_lock_data_zone();
+    if(status == ATCA_SUCCESS)
+    {
+        atcab_wakeup();
+        LOG_INF("ATECC608 data zone locked success.");
+        return 0;
+    }
+    else{
+        
+        LOG_ERR("ATECC608 data zone locked failed with ret=%d", status);
+        return -EAGAIN;
+    }
+}
+
+static int _verify_aes(void) {
     ATCA_STATUS status;
     uint8_t plaintext[16] = {0};
     uint8_t ciphertext[16] = {0};
-    
-    status = atcab_aes_encrypt(1, 0, plaintext, ciphertext);
+    for(uint8_t slot=0;slot<15;slot++)
+    {
+        status = atcab_aes_encrypt(slot, 0, plaintext, ciphertext);
 
-    if (status == ATCA_SUCCESS) {
-        LOG_INF("AES crypto success.");
-        LOG_HEXDUMP_INF(ciphertext, 16, "AES Ciphertext");
-    } else {
-        LOG_ERR("AES crypto failed with ret=%d", status);
+        if (status == ATCA_SUCCESS) {
+            LOG_INF("AES crypto success.");
+            LOG_HEXDUMP_INF(ciphertext, 16, "AES Ciphertext");
+        } else {
+            LOG_ERR("AES crypto failed with ret=%d", status);
+        }
     }
 
     return 0;
@@ -192,11 +227,13 @@ static int _generate_ecc_key()
     return 0;
 }
 
-static int ecc_hardware_test(void) {
+static int _ecc_hardware_test(void) {
     ATCA_STATUS status;
     uint8_t pubkey[64];
     uint8_t msg_hash[32];
     uint8_t signature[64];
+    bool is_verified = false;
+
     memset(msg_hash, 0xAA, 32);
 
     status = atcab_genkey(1, pubkey);
@@ -208,6 +245,15 @@ static int ecc_hardware_test(void) {
 
         if (status == ATCA_SUCCESS) {
             LOG_INF("sign success");
+            status = atcab_verify_extern(msg_hash, signature, pubkey, &is_verified);
+            if(status == ATCA_SUCCESS)
+            {
+                LOG_INF("verify status : %s", is_verified == true?"true":"false");
+            }
+            else
+            {
+                LOG_ERR("atcab_verify_extern failed with ret=%d", status);
+            }
         }
         else{
             LOG_ERR("atcab_sign failed with ret=%d", status);
@@ -217,9 +263,51 @@ static int ecc_hardware_test(void) {
     return 0;
 }
 
-static void ecc_software_test(void) {
+static void _ecdsa_software_test(void) {
     extern int _ecdsa();
     _ecdsa();
+}
+
+static int _ecdhe_software_test()
+{
+    extern int _ecdhe();
+    _ecdhe();
+
+    return 0;
+}
+
+static void _crypto_ecdhe()
+{
+    uint8_t slot_num = 1;
+    uint8_t public_key[ATCA_PUB_KEY_SIZE];
+    uint8_t shared_key[ATCA_KEY_SIZE];
+    uint8_t buffer[ATCA_PUB_KEY_SIZE] = {0};
+    ATCA_STATUS status;
+
+    /* only slot 1 is valid. */
+
+    for(slot_num=1;slot_num<2;slot_num++)
+    {
+        LOG_INF("slot number : %d", slot_num);
+        status = atcab_genkey(slot_num, public_key);
+        LOG_INF("ret : %d", status);
+
+        LOG_HEXDUMP_INF(public_key, sizeof(public_key), "public");
+
+        memcpy(buffer, public_key, ATCA_PUB_KEY_SIZE);
+        
+        status = atcab_ecdh(slot_num, public_key, shared_key);
+        LOG_INF("ret : %d", status);
+        if(status == ATCA_SUCCESS)
+        {
+            LOG_INF("ECDH success! shared secret generated.");
+            LOG_HEXDUMP_INF(shared_key, sizeof(shared_key), "key");
+        }
+        else
+        {
+            LOG_ERR("atcab_ecdh() failed with ret=0x%08X", status);
+        }
+    }
 }
 
 static int example_crypto_operations(const struct shell *sh, size_t argc, char *argv[])
@@ -294,7 +382,7 @@ static int example_crypto_operations(const struct shell *sh, size_t argc, char *
     }
     else if(operation == 4)
     {
-        verify_slot9_aes();
+        _verify_aes();
     }
     else if(operation == 5)
     {
@@ -302,11 +390,19 @@ static int example_crypto_operations(const struct shell *sh, size_t argc, char *
     }
     else if(operation == 6)
     {
-        ecc_hardware_test();
+        _ecc_hardware_test();
     }
     else if(operation == 7)
     {
-        ecc_software_test();
+        _ecdsa_software_test();
+    }
+    else if(operation == 8)
+    {
+        _ecdhe_software_test();
+    }
+    else if(operation == 9)
+    {
+        _crypto_ecdhe();
     }
     else if(operation == 10086)
     {
@@ -315,7 +411,11 @@ static int example_crypto_operations(const struct shell *sh, size_t argc, char *
         [00:00:09.349,000] <inf> crypto: config zone: unlocked
         [00:00:09.380,000] <inf> crypto: ATECC608 locked success.
     */
-        _lock_crypto_atecc608();
+        _lock_config_crypto_atecc608();
+    }
+    else if(operation == 1008611)
+    {
+        _lock_data_crypto_atecc608();
     }
     else 
     {

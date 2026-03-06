@@ -25,11 +25,17 @@ target_sources(app PRIVATE src/main.c
     src/crypto.c 
     src/operation.c 
     src/ecdsa.c 
+    src/ecdhe.c 
     src/net/sntp.c
     src/net/http.c
     src/net/https.c
     src/net/mqtts.c
     src/net/terminal.c
+
+    cryptoauthlib/third_party/atca_mbedtls_patch.c
+    cryptoauthlib/lib/mbedtls/atca_mbedtls_ecdh.c
+    cryptoauthlib/lib/mbedtls/atca_mbedtls_ecdsa.c
+    cryptoauthlib/lib/mbedtls/atca_mbedtls_wrap.c
 )
 
 target_link_libraries(cryptoauth PUBLIC zephyr_interface)

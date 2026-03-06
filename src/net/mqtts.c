@@ -72,7 +72,8 @@ static int setup_credentials(void)
 					TLS_CREDENTIAL_CA_CERTIFICATE,
 					ca_certificate,
 					sizeof(ca_certificate));
-	if (ret < 0) {
+	if ((ret < 0) && (ret != -EEXIST))
+	{
 		LOG_ERR("Failed to add device certificate: %d", ret);
 	}
 

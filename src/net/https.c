@@ -80,7 +80,10 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
                         TLS_CREDENTIAL_CA_CERTIFICATE,
                         ca_certificate,
                         sizeof(ca_certificate));
-    LOG_INF("add cert, ret : %d", ret);
+    if ((ret < 0) && (ret != -EEXIST))
+    {
+		LOG_ERR("Failed to add device certificate: %d", ret);
+	}
 
 	LOG_DBG("request host : %s", HTTPS_HOST);
 

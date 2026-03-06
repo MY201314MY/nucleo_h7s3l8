@@ -17,5 +17,5 @@ SHELL_STATIC_SUBCMD_SET_CREATE(protocol_commands,
 	SHELL_SUBCMD_SET_END
 );
 
-SHELL_CMD_REGISTER(protocol, &protocol_commands,
-		   "example for protocol", NULL);
+SHELL_CMD_REGISTER(thing, &protocol_commands,
+		   "example for net protocol", NULL);
