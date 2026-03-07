@@ -140,6 +140,40 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
         sys_heap_runtime_stats_get(&_system_heap.heap, &stats);
         LOG_INF("heap allocated=%d, free=%d, max allocated:%d", stats.allocated_bytes, stats.free_bytes, stats.max_allocated_bytes);
     }
+    else if(operation == 10)
+    {
+        const struct device *const vbat_dev = DEVICE_DT_GET(DT_NODELABEL(vbat));
+        struct sensor_value voltage;
+
+        if (!device_is_ready(vbat_dev)) {
+            LOG_ERR("device not ready.");
+            return -ENODEV;
+        }
+        ret = sensor_sample_fetch(vbat_dev);
+        if (ret == 0) {
+            sensor_channel_get(vbat_dev, SENSOR_CHAN_VOLTAGE, &voltage);
+            LOG_INF("voltage of battery : %d.%06d V", voltage.val1, voltage.val2);
+        } else {
+            LOG_ERR("sensor_sample_fetch failed with ret : %d", ret);
+        }
+    }
+    else if(operation == 11)
+    {
+        const struct device *const vref_dev = DEVICE_DT_GET(DT_NODELABEL(vref));
+        struct sensor_value voltage;
+
+        if (!device_is_ready(vref_dev)) {
+            LOG_ERR("device not ready.");
+            return -ENODEV;
+        }
+        ret = sensor_sample_fetch(vref_dev);
+        if (ret == 0) {
+            sensor_channel_get(vref_dev, SENSOR_CHAN_VOLTAGE, &voltage);
+            LOG_INF("voltage of reference : %d.%06d V", voltage.val1, voltage.val2);
+        } else {
+            LOG_ERR("sensor_sample_fetch failed with ret : %d", ret);
+        }
+    }
     else {
         LOG_DBG("unknown operation");
     }
