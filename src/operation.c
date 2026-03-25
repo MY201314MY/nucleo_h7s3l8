@@ -10,6 +10,7 @@
 #include <zephyr/arch/arm/mpu/arm_mpu.h>
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/sys/sys_heap.h>
+#include <zephyr/drivers/entropy.h>
 #include <stm32h7rsxx.h>
 
 #include <zephyr/logging/log.h>
@@ -103,16 +104,16 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
                 uint32_t addr = rbar & MPU_RBAR_ADDR_Msk;
                 
                 uint8_t size_code = (uint8_t)((rasr & MPU_RASR_SIZE_Msk) >> MPU_RASR_SIZE_Pos);
-                uint32_t size_bytes = 1U << (size_code + 1);
+                uint64_t size_bytes = 1ULL << (size_code + 1);
+                uint8_t xn = (uint8_t)((rasr & MPU_RASR_XN_Msk) >> MPU_RASR_XN_Pos);
+                uint8_t ap = (uint8_t)((rasr & MPU_RASR_AP_Msk) >> MPU_RASR_AP_Pos);
 
-                if (size_code == 31) 
+                if(size_code == 31)
                 {
-                    LOG_INF("region %d: addr: 0x%08X | size: 4GB", i, addr);
+                    continue;
                 }
-                else
-                {
-                    LOG_INF("region %d: addr: 0x%08X | size: 0x%08X bytes", i, addr, size_bytes);
-                }
+
+                LOG_INF("region %02d: addr: 0x%08X --- xn : %d --- ap : %d --- size: 0x%08llX bytes", i, addr, xn, ap, size_bytes);
             }
         }
     }
@@ -173,6 +174,22 @@ int example_operations(const struct shell *sh, size_t argc, char *argv[])
         } else {
             LOG_ERR("sensor_sample_fetch failed with ret : %d", ret);
         }
+    }
+    else if(operation == 12)
+    {
+        const struct device *rng_dev = DEVICE_DT_GET(DT_NODELABEL(rng));
+        uint8_t random[32] = {0};
+
+        ret = entropy_get_entropy(rng_dev, random, sizeof(random));
+        if(ret == 0)
+        {
+            LOG_HEXDUMP_INF(random, sizeof(random), "random");
+        }
+
+    }
+    else if(operation == 13)
+    {
+        
     }
     else {
         LOG_DBG("unknown operation");

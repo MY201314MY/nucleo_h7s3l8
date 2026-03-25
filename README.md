@@ -264,6 +264,188 @@ inspiron:~$ i2c read i2c@40005400 60 0
 00000000: 04 11 33 43 ff ff ff ff  ff ff ff ff ff ff ff ff |..3C.... ........|
 ```
 
+### cryptoauthlib
+
+```shell
+./cryptoauth_test help
+
+Usage:
+help - Display Menu
+sha204 - Set Target Device to ATSHA204A
+sha206 - Set Target Device to ATSHA206A
+ecc108 - Set Target Device to ATECC108A
+ecc204 - Set Target Device to ECC204
+ta010 - Set Target Device to TA010
+sha104 - Set Target Device to SHA104
+sha105 - Set Target Device to SHA105
+ecc508 - Set Target Device to ATECC508A
+ecc608 - Set Target Device to ATECC608
+info - Get the Chip Revision
+sernum - Get the Chip Serial Number
+readcfg - Read the Config Zone
+hal - Tests hal drivers functionality
+rand - Generate Some Random Numbers
+lockstat - Zone Lock Status
+tng - Run unit tests on TNG type part.
+wpc - Run unit tests on WPC type part.
+basic - Run Basic Test on Selected Device
+util - Run Helper Function Tests
+clkdivm0 - Set ATECC608 to ClockDivider M0(0x00)
+clkdivm1 - Set ATECC608 to ClockDivider M1(0x05)
+clkdivm2 - Set ATECC608 to ClockDivider M2(0x0D)
+cd - Run Unit Tests on Cert Data
+cio - Run Unit Test on Cert I/O
+crypto - Run Unit Tests for Software Crypto Functions
+calib - Run calib api tests
+exit - Exit the test application
+```
+
+
+
+```shell
+[00:00:52.210,000] <dbg> crypto: example_crypto_operations: operation 1 selected
+[00:00:52.243,000] <inf> crypto: config
+                                 01 23 87 a9 00 00 60 02  a7 d7 27 f7 ee c1 5d 00 |.#....`. ..'...].
+                                 c0 00 00 00 83 20 87 20  8f 20 c4 8f 8f 8f 8f 8f |..... .  . ......
+                                 9f 8f af 8f 00 00 00 00  00 00 00 00 00 00 00 00 |........ ........
+                                 00 00 af 8f ff ff ff ff  00 00 00 00 ff ff ff ff |........ ........
+                                 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 |........ ........
+                                 00 00 00 00 00 00 00 00  ff ff 00 00 00 00 00 00 |........ ........
+                                 33 00 33 00 33 00 1c 00  1c 00 1c 00 1c 00 1c 00 |3.3.3... ........
+                                 3c 00 3c 00 3c 00 3c 00  3c 00 3c 00 3c 00 1c 00 |<.<.<.<. <.<.<...
+[00:00:52.318,000] <inf> crypto: slot config
+                                 20 87 20 8f 20 c4 8f 8f  8f 8f 8f 9f 8f af 8f 00 | . . ... ........
+                                 00 00 00 00 00 00 00 00  00 00 00 00 00 af 8f ff |........ ........
+[00:00:52.340,000] <inf> crypto: key config
+                                 33 00 33 00 33 00 1c 00  1c 00 1c 00 1c 00 1c 00 |3.3.3... ........
+                                 3c 00 3c 00 3c 00 3c 00  3c 00 3c 00 3c 00 1c 00 |<.<.<.<. <.<.<...
+```
+
+
+
+```c
+./cryptoauth_test sernum -d ecc608 -i hid i2c 0 -a 0x00
+
+serial number:
+01 23 B9 9C B4 6C A1 C6 EE
+
+./cryptoauth_test sernum -d ecc608 -i hid i2c 0 -a 0x6A
+
+serial number:
+01 23 3F CE 99 12 44 0F 01
+
+./cryptoauth_test sernum -d ecc608 -i hid i2c 0 -a 0x6C
+
+serial number:
+01 23 8B 26 36 5D C4 18 01
+```
+
+
+
+```shell
+./cryptoauth_test readcfg -d ecc608 -i hid i2c 0 -a 0x00
+
+
+01 23 B9 9C 00 00 60 03  B4 6C A1 C6 EE 61 65 00
+C0 00 00 00 83 0F 83 0F  83 0F 83 0F 83 0F 83 0F
+83 0F 83 0F 0F 0F 0F 0F  0F 0F 0F 0F 0F 0F 0F 0F
+0F 0F 0F 0F 00 00 00 01  00 00 00 00 0F FF FF FF
+00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00  FF FF 00 00 00 00 00 00
+33 00 33 00 33 00 33 00  33 00 33 00 33 00 33 00
+3C 00 3C 00 3C 00 3C 00  3C 00 3C 00 3C 00 3C 00
+
+./cryptoauth_test readcfg -d ecc608 -i hid i2c 0 -a 0x6A
+
+
+01 23 3F CE 00 00 60 03  99 12 44 0F 01 61 55 00
+6A 00 00 01 85 00 82 00  85 20 85 20 85 20 0F 8F
+8F 0F 8F 8F 0F 0F 8F 0F  0F 8F 0F 8F 0F 8F 8F 8F
+8F 8F 8F 8F 00 00 00 01  00 00 00 00 0F FF FF FF
+00 00 00 00 00 00 00 F7  00 69 76 00 00 00 00 00
+00 00 00 00 00 00 00 00  FF FF 0E 60 00 00 00 00
+53 00 53 00 73 00 73 00  73 00 1C 00 7C 00 1C 00
+3C 00 1A 00 1C 00 10 00  1C 00 1C 00 1C 00 1C 00
+
+./cryptoauth_test readcfg -d ecc608 -i hid i2c 0 -a 0x6C
+
+
+01 23 8B 26 00 00 60 03  36 5D C4 18 01 61 69 00
+6C 00 00 01 85 00 82 00  85 20 85 20 85 20 8F 46
+8F 0F 9F 8F 0F 0F 8F 0F  0F 0F 0F 0F 0F 0F 0F 0F
+0D 1F 0F 0F FF FF FF FF  00 00 00 00 FF FF FF FF
+00 00 00 00 00 00 03 F7  00 69 76 00 00 00 00 00
+00 00 00 00 00 00 00 00  FF FF 0E 60 00 00 00 00
+53 00 53 00 73 00 73 00  73 00 38 00 7C 00 1C 00
+3C 00 1A 00 3C 00 30 00  3C 00 30 00 12 00 30 00
+```
+
+0x6A
+```shell
+01 23 3F CE 00 00 60 03  99 12 44 0F 01 61 55 00
+
+
+6A(16:address) 
+00 00 01 
+
+[ device private key ] slot config 00 : 85 00 : ES : ECDH
+[ device public  CA  ] slot config 01 : 82 00 : IS : NONE
+[ROOT CA             ] slot config 02 : 85 20 : ES : ECDH
+slot config 03 : 85 20
+slot config 04 : 85 20
+slot config 05 : 0F 8F
+slot config 06 : 8F 0F
+slot config 07 : 8F 8F
+slot config 08 : 0F 0F
+slot config 09 : 8F 0F
+slot config 10 : 0F 8F
+slot config 11 : 0F 8F
+slot config 12 : 0F 8F
+slot config 13 : 8F 8F
+slot config 14 : 8F 8F
+slot config 15 : 8F 8F
+
+00 00 00 01  00 00 00 00 0F FF FF FF
+00 00 00 00 00 00 00 F7  00 69 76 00 00 00 00 00
+00 00 00 00 00 00 00 00  FF FF 0E 60 00 00 00 00
+
+key config 00 : 53 00
+key config 01 : 53 00
+key config 02 : 73 00
+key config 03 : 73 00 
+key config 04 : 73 00
+key config 05 : 1C 00
+key config 06 : 7C 00
+key config 07 : 1C 00
+key config 08 : 3C 00
+key config 09 : 1A 00
+key config 10 : 1C 00
+key config 11 : 10 00
+key config 12 : 1C 00
+key config 13 : 1C 00
+key config 14 : 1C 00
+key config 15 : 1C 00
+```
+
+```shell
+[00:00:04.413,000] <dbg> operation: example_operations: operation 5 selected
+[00:00:04.420,000] <inf> operation: --- Hard-Reading MPU Registers (16 slots) ---
+[00:00:04.428,000] <inf> operation: region 01: addr: 0x40000000 --- xn : 0 --- ap : 1 --- size: 0x20000000 bytes
+[00:00:04.439,000] <inf> operation: region 02: addr: 0x70000000 --- xn : 0 --- ap : 2 --- size: 0x00008000 bytes
+[00:00:04.450,000] <inf> operation: region 03: addr: 0x24000000 --- xn : 1 --- ap : 1 --- size: 0x00080000 bytes
+[00:00:04.461,000] <inf> operation: region 04: addr: 0x08FFF800 --- xn : 0 --- ap : 1 --- size: 0x00000200 bytes
+[00:00:04.472,000] <inf> operation: region 05: addr: 0x30004000 --- xn : 1 --- ap : 1 --- size: 0x00004000 bytes
+[00:00:04.482,000] <inf> operation: region 06: addr: 0x30004000 --- xn : 0 --- ap : 1 --- size: 0x00000100 bytes
+[00:00:04.493,000] <inf> operation: region 07: addr: 0x38800000 --- xn : 1 --- ap : 1 --- size: 0x00001000 bytes
+
+not very clear???
+
+[00:00:04.504,000] <inf> operation: region 08: addr: 0x30000000 --- xn : 1 --- ap : 1 --- size: 0x00004000 bytes
+[00:00:04.515,000] <inf> operation: region 09: addr: 0x70000000 --- xn : 0 --- ap : 2 --- size: 0x02000000 bytes
+[00:00:04.525,000] <inf> operation: region 10: addr: 0x2401F380 --- xn : 1 --- ap : 5 --- size: 0x00000080 bytes
+```
+
+
 # SPI
 
 ## read w25qxx id
@@ -328,6 +510,8 @@ index ae47f2aba8a..7f63ac1d7c4 100644
 
 Empty diff in 64 projects.
 ```
+
+
 
 # pinctrl
 
