@@ -22,6 +22,7 @@ include_directories(app ${CMAKE_CURRENT_BINARY_DIR}/cryptoauthlib/lib
 test_sysbuild()
 
 target_sources(app PRIVATE src/main.c 
+    src/pka.c 
     src/crypto.c 
     src/operation.c 
     src/ecdsa.c 
