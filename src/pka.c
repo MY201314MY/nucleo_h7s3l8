@@ -10,7 +10,17 @@ LOG_MODULE_REGISTER(pka, LOG_LEVEL_DBG);
 
 static PKA_HandleTypeDef hpka;
 
-void pka_ecc_double_base_ladder()
+void HAL_PKA_OperationCpltCallback(PKA_HandleTypeDef *hpka)
+{
+    LOG_INF("finished");
+}
+
+void HAL_PKA_ErrorCallback(PKA_HandleTypeDef *hpka)
+{
+    LOG_ERR("pka error.");
+}
+
+static int pka_ecc_double_base_ladder()
 {
     HAL_StatusTypeDef status = HAL_OK;
 
@@ -31,8 +41,8 @@ void pka_ecc_double_base_ladder()
     uint8_t output1_X[24]                                            = {0x19, 0x51, 0xE5, 0x16, 0x72, 0x1D, 0x98, 0xB6, 0x9E, 0xEC, 0x34, 0x0A, 0x2B, 0xA1, 0xC2, 0x08, 0x03, 0x1C, 0xB6, 0xC7, 0xD3, 0x81, 0xCD, 0xEA};
     uint8_t output1_Y[24]                                            = {0x57, 0x1F, 0xA8, 0xFE, 0xCB, 0xA8, 0x5A, 0xD9, 0xBA, 0xFD, 0x47, 0xA6, 0x60, 0xA9, 0x5F, 0xF5, 0xE3, 0xCE, 0x22, 0x50, 0x42, 0xA9, 0x4D, 0x31};
     
-    uint8_t buffer_x[24];
-    uint8_t buffer_y[24];
+    uint8_t buffer_x[24] = {0};
+    uint8_t buffer_y[24] = {0};
 
     LOG_INF("PKA ECC Double Base Ladder");
     PKA_ECCDoubleBaseLadderInTypeDef in;
@@ -62,6 +72,7 @@ void pka_ecc_double_base_ladder()
     if (status != HAL_OK)
     {
         LOG_ERR("HAL_PKA_ECCDoubleBaseLadder failed with ret=%d", status);
+        return -EAGAIN;
     }
     /* retrieve computation result */
     HAL_PKA_ECCDoubleBaseLadder_GetResult(&hpka, &out);
@@ -72,12 +83,60 @@ void pka_ecc_double_base_ladder()
     {
         /* HAL PKA Operation error */
         LOG_ERR("pka operation error!");
+        return -EAGAIN;
     }
 
     LOG_INF("pka success");
+
+    return 0;
 }
 
-static void crypto_pka_init(void)
+static int pka_mod_exp()
+{
+    HAL_StatusTypeDef status = HAL_OK;
+    PKA_ModExpProtectModeInTypeDef in = {0};
+    
+    uint32_t input1_OpSize  = 32;
+    uint32_t input1_ExpSize = 32;
+    uint8_t input1_1[32]    = {0xE4, 0x88, 0xD8, 0x11, 0x76, 0xE5, 0x06, 0xFA, 0xB7, 0xC2, 0xFC, 0x5D, 0xF3, 0xCB, 0x75, 0x55, 0x34, 0x3F, 0x45, 0xB4, 0x78, 0x52, 0xBA, 0x7E, 0xFB, 0xF5, 0xB1, 0x2A, 0xF4, 0x0B, 0xF4, 0xB3};
+    uint8_t input1_2[32]    = {0x12, 0x28, 0x49, 0x3A, 0x81, 0xFE, 0xCA, 0x62, 0x2B, 0x2D, 0x83, 0xCD, 0x97, 0x2C, 0x28, 0x23, 0x39, 0x76, 0xF1, 0xF3, 0x71, 0xCE, 0x16, 0x84, 0xA0, 0x37, 0x98, 0xE0, 0xC7, 0x0B, 0xF4, 0x39};
+    uint8_t input1_3[32]    = {0x45, 0xAB, 0x14, 0x95, 0x48, 0x22, 0x69, 0xC4, 0x8F, 0x1E, 0xCA, 0x23, 0x0C, 0x1F, 0x5A, 0xB4, 0xBC, 0xE7, 0x12, 0xD8, 0x50, 0x09, 0x54, 0xBB, 0xE2, 0x1D, 0x2A, 0x39, 0x86, 0x3E, 0xDB, 0xFB};
+    uint8_t input1_4[32]    = {0xE4, 0x88, 0xD8, 0x11, 0x76, 0xE5, 0x06, 0xFA, 0xB7, 0xC2, 0xFC, 0x5D, 0xF3, 0xCB, 0x75, 0x53, 0x50, 0x7D, 0xA2, 0xCD, 0x98, 0x24, 0x33, 0x76, 0x14, 0x8F, 0xCF, 0xA3, 0xF5, 0xCF, 0x4A, 0x88};
+    uint8_t output1[32]     = {0xD1, 0x2F, 0x36, 0x6C, 0x61, 0xB5, 0x66, 0x48, 0x61, 0x17, 0x8A, 0x1E, 0x6B, 0xD0, 0xE7, 0xBF, 0x66, 0x0A, 0x2B, 0x07, 0x9D, 0x4D, 0x82, 0x68, 0x7E, 0xB1, 0x9D, 0x29, 0x94, 0x43, 0x6D, 0x39};
+
+    uint8_t buffer[32] = {0};
+
+    LOG_INF("PKA MOD EXP");
+
+    /* set input parameters */
+    in.OpSize  = input1_OpSize;
+    in.expSize = input1_ExpSize;
+    in.pMod    = input1_1;
+    in.pExp    = input1_2;
+    in.pOp1    = input1_3;
+    in.pPhi    = input1_4;
+
+    status = HAL_PKA_ModExpProtectMode(&hpka, &in, 5000);
+    if(status != HAL_OK)
+    {
+        LOG_ERR("HAL_PKA_ModExpProtectMode_IT failed with ret=%d", status);
+        return -EAGAIN;
+    }
+
+    /* retrieve computation result */
+    HAL_PKA_ModExp_GetResult(&hpka, buffer);
+
+    if(memcmp(buffer, output1, 32) != 0)
+    {
+        LOG_ERR("error!");
+        return -EAGAIN;
+    }
+
+    LOG_INF("success");
+    return 0;
+}   
+
+static int crypto_pka_init(void)
 {
     HAL_StatusTypeDef status = HAL_OK;
     hpka.Instance = PKA;
@@ -94,7 +153,10 @@ static void crypto_pka_init(void)
     else
     {
         LOG_ERR("HAL_PKA_Init failed with ret=%d", status);
+        return -ENODEV;
     }
+
+    return 0;
 }
 
 int pka_operations(const struct shell *sh, size_t argc, char *argv[])
@@ -108,6 +170,9 @@ int pka_operations(const struct shell *sh, size_t argc, char *argv[])
     }
     else if(operation == 1) {
         pka_ecc_double_base_ladder();
+    }
+    else if(operation == 2) {
+        pka_mod_exp();
     }
     else {
         LOG_DBG("unknown operation");
