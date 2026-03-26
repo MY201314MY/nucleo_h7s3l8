@@ -6,6 +6,20 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(ecdsa, LOG_LEVEL_DBG);
 
+/*
+    [00:00:08.376,000] <dbg> crypto: example_crypto_operations: operation 7 selected
+    [00:00:08.384,000] <inf> ecdsa:   . Seeding the random number generator...
+    [00:00:08.398,000] <inf> ecdsa:  ok  . Generating key pair...
+    [00:00:09.902,000] <inf> ecdsa:  ok (key size: 256 bits)
+    [00:00:09.908,000] <inf> ecdsa:   . Computing message hash...
+    [00:00:09.915,000] <inf> ecdsa:  ok
+    [00:00:09.918,000] <inf> ecdsa:   . Signing message hash...
+    [00:00:11.480,000] <inf> ecdsa:  ok (signature length = 72)
+    [00:00:11.486,000] <inf> ecdsa:   . Preparing verification context...
+    [00:00:11.493,000] <inf> ecdsa:  ok  . Verifying signature...
+    [00:00:17.423,000] <inf> ecdsa:  ok
+*/
+
 int _ecdsa()
 {
     int ret = 1;
