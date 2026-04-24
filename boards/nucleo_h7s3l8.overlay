@@ -52,6 +52,10 @@
 	};
 };
 
+&sram1 {
+	status = "okay";
+};
+
 &sram2 {
 	status = "okay";
 };
@@ -107,6 +111,10 @@
 		status = "okay";
 		#pwm-cells = <3>;
 	};
+};
+
+&usart3 {
+	current-speed = <115200>;
 };
 
 &spi1 {

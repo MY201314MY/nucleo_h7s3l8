@@ -266,7 +266,7 @@ static int pka_ecdsa()
     return 0;
 }
 
-static int crypto_pka_init(void)
+int crypto_pka_init(void)
 {
     HAL_StatusTypeDef status = HAL_OK;
     hpka.Instance = PKA;
