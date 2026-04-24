@@ -170,7 +170,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
              mbedtls_mpi_cmp_mpi(&ctx->MBEDTLS_PRIVATE(d), &mpi_n) >= 0);
     mbedtls_mpi_free(&mpi_n);
 
-    LOG_HEXDUMP_INF(rand_priv, priv_len, "private key");
+    LOG_HEXDUMP_INF(rand_priv, priv_len, "d");
 
     if (pka_compute_public_key(gid, rand_priv, Qx, Qy) != 0) {
         memset(Qx, 0, pub_len);
@@ -212,8 +212,8 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
     const uint8_t *p = NULL, *a = NULL, *b = NULL, *gx = NULL, *gy = NULL, *n = NULL;
     uint32_t modulusSize = 0, orderSize = 0, coefSign = 1;
     uint8_t k_bin[66] = {0}, d_buf[66] = {0}, r_bin[66] = {0}, s_bin[66] = {0};
-    static PKA_ECDSASignInTypeDef in;
-    static PKA_ECDSASignOutTypeDef out;
+    PKA_ECDSASignInTypeDef in = {0};
+    PKA_ECDSASignOutTypeDef out = {0};
 
     memset(&in, 0, sizeof(in));
     memset(&out, 0, sizeof(out));
@@ -264,7 +264,7 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp, const unsigned char *buf, size_
     const uint8_t *p = NULL, *a = NULL, *gx = NULL, *gy = NULL, *n = NULL;
     uint32_t modulusSize = 0, orderSize = 0, coefSign = 1;
     uint8_t r_bin[66] = {0}, s_bin[66] = {0}, q_bin[2*66+1] = {0};
-    static PKA_ECDSAVerifInTypeDef in;
+    PKA_ECDSAVerifInTypeDef in = {0};
 
     memset(&in, 0, sizeof(in));
 
@@ -306,6 +306,111 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp, const unsigned char *buf, size_
     } else {
         return MBEDTLS_ERR_ECP_VERIFY_FAILED; 
     }
+}
+
+int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp,
+                             mbedtls_mpi *d, mbedtls_ecp_point *Q,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng )
+{
+    int ret;
+    size_t len = 0;
+    uint8_t priv_key[66] = {0};
+    uint8_t Qx[66] = {0}, Qy[66] = {0};
+
+    switch(grp->id) {
+        case MBEDTLS_ECP_DP_SECP192R1: len = 24; break;
+        case MBEDTLS_ECP_DP_SECP256R1: len = 32; break;
+        case MBEDTLS_ECP_DP_SECP384R1: len = 48; break;
+        default: return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    }
+
+    if ((ret = f_rng(p_rng, priv_key, len)) != 0)
+        return ret;
+
+    LOG_HEXDUMP_INF(priv_key, len, "d");
+
+    ret = pka_compute_public_key(grp->id, priv_key, Qx, Qy);
+    if (ret != 0)
+        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+
+    mbedtls_mpi_read_binary(d, priv_key, len);
+    mbedtls_mpi_read_binary(&Q->MBEDTLS_PRIVATE(X), Qx, len);
+    mbedtls_mpi_read_binary(&Q->MBEDTLS_PRIVATE(Y), Qy, len);
+    mbedtls_mpi_lset(&Q->MBEDTLS_PRIVATE(Z), 1);
+
+    return ret;
+}
+
+int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp,
+                                 mbedtls_mpi *z,
+                                 const mbedtls_ecp_point *Q,
+                                 const mbedtls_mpi *d,
+                                 int (*f_rng)(void *, unsigned char *, size_t),
+                                 void *p_rng )
+{
+    size_t size = 0;
+    uint8_t d_bin[66] = {0}, Qx_bin[66] = {0}, Qy_bin[66] = {0};
+    uint8_t sx[66] = {0}, sy[66] = {0};
+
+    PKA_ECCDoubleBaseLadderInTypeDef in = {0};
+    PKA_ECCDoubleBaseLadderOutTypeDef out = {0};
+
+    switch(grp->id) {
+        case MBEDTLS_ECP_DP_SECP192R1:
+            size = 24;
+            in.modulus = secp192r1_p;
+            in.coefA = secp192r1_a;
+            in.coefSign = secp192r1_coefSign;
+            in.modulusSize = secp192r1_modulusSize;
+            in.primeOrderSize = secp192r1_orderSize;
+            in.integerM = secp192r1_m;
+            in.basePointZ1 = secp192r1_Gz;
+            break;
+
+        case MBEDTLS_ECP_DP_SECP256R1:
+            size = 32;
+            in.modulus = secp256r1_p;
+            in.coefA = secp256r1_a;
+            in.coefSign = secp256r1_coefSign;
+            in.modulusSize = secp256r1_modulusSize;
+            in.primeOrderSize = secp256r1_orderSize;
+            in.integerM = secp256r1_m;
+            in.basePointZ1 = secp256r1_Gz;
+            break;
+
+        case MBEDTLS_ECP_DP_SECP384R1:
+            size = 48;
+            in.modulus = secp384r1_p;
+            in.coefA = secp384r1_a;
+            in.coefSign = secp384r1_coefSign;
+            in.modulusSize = secp384r1_modulusSize;
+            in.primeOrderSize = secp384r1_orderSize;
+            in.integerM = secp384r1_m;
+            in.basePointZ1 = secp384r1_Gz;
+            break;
+
+        default:
+            return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    }
+
+    mbedtls_mpi_write_binary(d, d_bin, size);
+    mbedtls_mpi_write_binary(&Q->MBEDTLS_PRIVATE(X), Qx_bin, size);
+    mbedtls_mpi_write_binary(&Q->MBEDTLS_PRIVATE(Y), Qy_bin, size);
+
+    in.integerK = d_bin;
+    in.basePointX1 = Qx_bin;
+    in.basePointY1 = Qy_bin;
+
+    out.ptX = sx;
+    out.ptY = sy;
+
+    if (HAL_PKA_ECCDoubleBaseLadder(&hpka, &in, 5000) != HAL_OK)
+        return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+
+    HAL_PKA_ECCDoubleBaseLadder_GetResult(&hpka, &out);
+
+    return mbedtls_mpi_read_binary(z, sx, size);
 }
 
 void hello_world()
