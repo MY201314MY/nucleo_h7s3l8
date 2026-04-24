@@ -6,14 +6,18 @@
 LOG_MODULE_REGISTER(crypto, LOG_LEVEL_DBG);
 
 static void _ecdsa_software_test(void) {
-    extern int _ecdsa();
-    _ecdsa();
+    extern int _ecdsa(int type);
+    _ecdsa(0);
+    _ecdsa(1);
+    _ecdsa(2);
 }
 
-static int _ecdhe_software_test()
+static int _ecdhe_test()
 {
-    extern int _ecdhe();
-    _ecdhe();
+    extern int _ecdhe(int type);
+    _ecdhe(0);
+    _ecdhe(1);
+    _ecdhe(2);
 
     return 0;
 }
@@ -30,7 +34,7 @@ static int example_crypto_operations(const struct shell *sh, size_t argc, char *
     }
     else if(operation == 8)
     {
-        _ecdhe_software_test();
+        _ecdhe_test();
     }
     else 
     {

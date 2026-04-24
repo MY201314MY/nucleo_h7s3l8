@@ -10,13 +10,15 @@ project(sample_with_mcuboot)
 # used when building MCUboot.
 test_sysbuild()
 
-target_sources(app PRIVATE src/main.c 
-    src/pka.c 
-    src/mbedtls-ecdsa-alt.c 
-    src/crypto.c 
-    src/operation.c 
-    src/ecdsa.c 
-    src/ecdhe.c 
+target_sources(app PRIVATE src/main.c
+    src/pka.c
+    src/mbedtls-ecdsa-ecdhe-alt.c
+    src/mbedtls-exp-mod-alt.c
+    src/crypto.c
+    src/operation.c
+    src/rsa.c
+    src/ecdsa.c
+    src/ecdhe.c
     src/net/sntp.c
     src/net/http.c
     src/net/https.c

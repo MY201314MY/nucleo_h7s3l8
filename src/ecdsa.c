@@ -20,7 +20,7 @@ LOG_MODULE_REGISTER(ecdsa, LOG_LEVEL_DBG);
     [00:00:17.423,000] <inf> ecdsa:  ok
 */
 
-int _ecdsa()
+int _ecdsa(int type)
 {
     int ret = 1;
     mbedtls_ecdsa_context ctx_sign, ctx_verify;
@@ -33,6 +33,29 @@ int _ecdsa()
     unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
     size_t sig_len;
     const char *pers = "ecdsa";
+    mbedtls_ecp_group_id curve = MBEDTLS_ECP_DP_SECP256R1;
+
+    switch(type) {
+        case 0:
+            curve = MBEDTLS_ECP_DP_SECP192R1;
+            printk("\r\n");
+            LOG_INF("[ECDSA] Using SECP192R1");
+            break;
+        case 1:
+            curve = MBEDTLS_ECP_DP_SECP256R1;
+            printk("\r\n");
+            LOG_INF("[ECDSA] Using SECP256R1");
+            break;
+        case 2:
+            curve = MBEDTLS_ECP_DP_SECP384R1;
+            printk("\r\n");
+            LOG_INF("[ECDSA] Using SECP384R1");
+            break;
+        default:
+            printk("\r\n");
+            LOG_ERR("Unknown type: %d", type);
+            return -1;
+    }
 
     mbedtls_ecdsa_init(&ctx_sign);
     mbedtls_ecdsa_init(&ctx_verify);
@@ -56,7 +79,7 @@ int _ecdsa()
 
     LOG_INF(" ok  . Generating key pair...");
 
-    if ((ret = mbedtls_ecdsa_genkey(&ctx_sign, MBEDTLS_ECP_DP_SECP256R1,
+    if ((ret = mbedtls_ecdsa_genkey(&ctx_sign, curve,
                                     mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
         LOG_INF(" failed  ! mbedtls_ecdsa_genkey returned %d", ret);
         goto exit;
