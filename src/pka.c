@@ -324,6 +324,8 @@ int pka_operations(const struct shell *sh, size_t argc, char *argv[])
     return 0;
 }
 
+SYS_INIT(crypto_pka_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
+
 SHELL_STATIC_SUBCMD_SET_CREATE(pka_commands,
 	SHELL_CMD(num, NULL,
 		"operation",

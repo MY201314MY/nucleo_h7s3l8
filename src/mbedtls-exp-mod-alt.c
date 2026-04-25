@@ -7,6 +7,11 @@ LOG_MODULE_REGISTER(rsa_alt, LOG_LEVEL_DBG);
 
 static PKA_HandleTypeDef hpka = { .Instance = PKA, .State = HAL_PKA_STATE_READY };
 
+static uint8_t n_buf[512] = {0};
+static uint8_t a_buf[512] = {0};
+static uint8_t e_buf[512] = {0};
+static uint8_t out_buf[512] = {0};
+
 int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
                         const mbedtls_mpi *E, const mbedtls_mpi *N,
                         mbedtls_mpi *prec_RR)
@@ -15,12 +20,6 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
 
     size_t n_len = mbedtls_mpi_size(N);
     size_t e_len = mbedtls_mpi_size(E);
-
-    /* max 4096 bits */
-    uint8_t n_buf[512] = {0};
-    uint8_t a_buf[512] = {0};
-    uint8_t e_buf[512] = {0};
-    uint8_t out_buf[512] = {0};
 
     mbedtls_mpi_write_binary(N, n_buf, n_len);
     mbedtls_mpi_write_binary(A, a_buf, n_len);
