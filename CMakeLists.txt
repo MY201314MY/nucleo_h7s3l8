@@ -11,14 +11,16 @@ project(sample_with_mcuboot)
 test_sysbuild()
 
 target_sources(app PRIVATE src/main.c
-    src/pka.c
-    src/mbedtls-ecdsa-ecdhe-alt.c
-    src/mbedtls-exp-mod-alt.c
-    src/crypto.c
     src/operation.c
-    src/rsa.c
-    src/ecdsa.c
-    src/ecdhe.c
+    
+    src/mbedtls/pka.c
+    src/mbedtls/mbedtls-ecdsa-ecdhe-alt.c
+    src/mbedtls/mbedtls-exp-mod-alt.c
+    src/mbedtls/crypto.c
+    src/mbedtls/rsa.c
+    src/mbedtls/ecdsa.c
+    src/mbedtls/ecdhe.c
+
     src/net/sntp.c
     src/net/http.c
     src/net/https.c
