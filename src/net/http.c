@@ -64,7 +64,7 @@ int example_http_request(const struct shell *sh, size_t argc, char *argv[])
 	struct addrinfo *res, *index;
 	char addr[64];
 
-	LOG_INF("looking up %s\n", HTTP_HOST);
+	LOG_INF("looking up %s", HTTP_HOST);
 	int ret = getaddrinfo(HTTP_HOST, HTTP_PORT, &hints, &res);
     if(ret != 0)
     {
@@ -74,13 +74,13 @@ int example_http_request(const struct shell *sh, size_t argc, char *argv[])
 
 	for(index=res;index != NULL; index=index->ai_next)
 	{
-		LOG_INF("addrinfo @%p : ai_family=%d, ai_socktype=%d, ai_protocol=%d, sa_family=%d, sin_port=%x\n",
+		LOG_INF("addrinfo @%p : ai_family=%d, ai_socktype=%d, ai_protocol=%d, sa_family=%d, sin_port=%x",
         index, index->ai_family, index->ai_socktype, index->ai_protocol, index->ai_addr->sa_family,
         ((struct sockaddr_in *)index->ai_addr)->sin_port);
 
 		inet_ntop(index->ai_family, &net_sin(index->ai_addr)->sin_addr, addr,
 			sizeof(addr));
-		LOG_INF("resolved %s (%s)\n", addr, net_family2str(index->ai_family));
+		LOG_INF("resolved %s (%s)", addr, net_family2str(index->ai_family));
 
     	fd = socket(index->ai_family, index->ai_socktype, index->ai_protocol);
 

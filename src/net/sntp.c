@@ -26,7 +26,7 @@ int example_sntp_request(const struct shell *sh, size_t argc, char *argv[])
         LOG_ERR("getaddrinfo error ret : %d", ret);
         goto end;
     }
-    LOG_INF("addrinfo @%p: ai_family=%d, ai_socktype=%d, ai_protocol=%d, sa_family=%d, sin_port=%x\n",
+    LOG_INF("addrinfo @%p: ai_family=%d, ai_socktype=%d, ai_protocol=%d, sa_family=%d, sin_port=%x",
         res, res->ai_family, res->ai_socktype, res->ai_protocol, res->ai_addr->sa_family,
         ((struct sockaddr_in *)res->ai_addr)->sin_port);
 

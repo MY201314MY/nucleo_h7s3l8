@@ -4,18 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/*
-pi@inspiron:~/zephyr/zephyr$ git log -n 1
-commit 23892b038f6a94f6677318fecbc4df98fc8e2ac5 (HEAD -> nucleo_h7s3l8)
-Author: Thinh Le Cong <thinh.le.xr@bp.renesas.com>
-Date:   Fri Oct 24 13:05:18 2025 +0700
-
-    drivers: serial: fix IAR warning Pe1072 about declaration after a label
-    
-    Fix Pe1072 warning (declaration after case label) by wrapping with braces
-    
-    Signed-off-by: Thinh Le Cong <thinh.le.xr@bp.renesas.com>
-*/
 #include <zephyr/kernel.h>
 #include <zephyr/linker/linker-defs.h>
 #include <zephyr/drivers/gpio.h>

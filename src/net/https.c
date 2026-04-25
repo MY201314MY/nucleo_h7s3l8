@@ -103,7 +103,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
         }
         inet_ntop(index->ai_family, &((struct sockaddr_in *)(index->ai_addr))->sin_addr, addr,
             INET_ADDRSTRLEN);
-        LOG_INF("resolved %s (%s)\n", addr, net_family2str(index->ai_family));
+        LOG_INF("resolved %s (%s)", addr, net_family2str(index->ai_family));
 
         sec_tag_t sec_tag_list[] = {
             CA_CERTIFICATE_TAG,
@@ -127,7 +127,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 
         ret = setsockopt(fd, SOL_TLS, TLS_PEER_VERIFY, &verify, sizeof(verify));
         if (ret) {
-            LOG_ERR("failed to setup peer verification, err %d\n", errno);
+            LOG_ERR("failed to setup peer verification, err %d", errno);
             return -errno;
         }
 

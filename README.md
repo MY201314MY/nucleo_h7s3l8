@@ -473,42 +473,197 @@ sudo ufw disable
 
 PATCH
 ```c
-(.venv) pi@inspiron:~/example/zephyr/STMicroelectronics/nucleo_h7s3l8/with_mcuboot$ west diff
+(.venv) pi@inspiron:~/zephyr/zephyr$ git log -n 1
+commit 23892b038f6a94f6677318fecbc4df98fc8e2ac5 (HEAD -> nucleo_h7s3l8)
+Author: Thinh Le Cong <thinh.le.xr@bp.renesas.com>
+Date:   Fri Oct 24 13:05:18 2025 +0700
+
+    drivers: serial: fix IAR warning Pe1072 about declaration after a label
+    
+    Fix Pe1072 warning (declaration after case label) by wrapping with braces
+    
+    Signed-off-by: Thinh Le Cong <thinh.le.xr@bp.renesas.com>
+(.venv) pi@inspiron:~/zephyr/zephyr$ west diff
 === diff for manifest (zephyr):
+diff --git zephyr/drivers/entropy/Kconfig.stm32 zephyr/drivers/entropy/Kconfig.stm32
+index 494af0d109e..4a0b476bda8 100644
+--- zephyr/drivers/entropy/Kconfig.stm32
++++ zephyr/drivers/entropy/Kconfig.stm32
+@@ -8,6 +8,7 @@ menuconfig ENTROPY_STM32_RNG
+ 	default y
+ 	depends on DT_HAS_ST_STM32_RNG_ENABLED || DT_HAS_ST_STM32_RNG_NOIRQ_ENABLED
+ 	select ENTROPY_HAS_DRIVER
++	select USE_STM32_HAL_PKA
+ 	help
+ 	  This option enables the RNG processor, which is a entropy number
+ 	  generator, based on a continuous analog noise, that provides
+diff --git zephyr/modules/mbedtls/configs/config-mbedtls.h zephyr/modules/mbedtls/configs/config-mbedtls.h
+index 3c33586c4c1..fd1c07752d2 100644
+--- zephyr/modules/mbedtls/configs/config-mbedtls.h
++++ zephyr/modules/mbedtls/configs/config-mbedtls.h
+@@ -561,4 +561,16 @@
+ #include CONFIG_MBEDTLS_USER_CONFIG_FILE
+ #endif
+ 
++/* ECDSA */
++#define MBEDTLS_ECDSA_GENKEY_ALT
++#define MBEDTLS_ECDSA_SIGN_ALT
++#define MBEDTLS_ECDSA_VERIFY_ALT
++
++/* ECDH */
++#define MBEDTLS_ECDH_GEN_PUBLIC_ALT
++#define MBEDTLS_ECDH_COMPUTE_SHARED_ALT
++
++/* RSA */
++#define MBEDTLS_MPI_EXP_MOD_ALT
++
+ #endif /* MBEDTLS_CONFIG_H */
+diff --git zephyr/modules/mbedtls/debug.c zephyr/modules/mbedtls/debug.c
+index 69bafc9c6d6..d4d70b52531 100644
+--- zephyr/modules/mbedtls/debug.c
++++ zephyr/modules/mbedtls/debug.c
+@@ -42,16 +42,16 @@ void zephyr_mbedtls_debug(void *ctx, int level, const char *file, int line, cons
+ 	switch (level) {
+ 	case 0:
+ 	case 1:
+-		LOG_ERR("%s:%04d: %.*s", basename, line, str_len, str);
++		LOG_DBG("L:%04d: %.*s", line, str_len, str);
+ 		break;
+ 	case 2:
+-		LOG_WRN("%s:%04d: %.*s", basename, line, str_len, str);
++		//LOG_WRN("%s:%04d: %.*s", basename, line, str_len, str);
+ 		break;
+ 	case 3:
+-		LOG_INF("%s:%04d: %.*s", basename, line, str_len, str);
++		//LOG_INF("%s:%04d: %.*s", basename, line, str_len, str);
+ 		break;
+ 	default:
+-		LOG_DBG("%s:%04d: %.*s", basename, line, str_len, str);
++		//LOG_DBG("%s:%04d: %.*s", basename, line, str_len, str);
+ 		break;
+ 	}
+ }
 diff --git zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c
-index 02bb198cb74..aaab451cdfc 100644
+index 02bb198cb74..e65bdc40297 100644
 --- zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c
 +++ zephyr/soc/st/stm32/stm32h7rsx/mpu_regions.c
-@@ -40,6 +40,7 @@ static const struct arm_mpu_region mpu_regions[] = {
-        MPU_REGION_ENTRY("SRAM_ETH_DESC", DT_REG_ADDR(sram_eth_node), REGION_PPB_ATTR(REGION_256B)),
+@@ -40,6 +40,8 @@ static const struct arm_mpu_region mpu_regions[] = {
+ 	MPU_REGION_ENTRY("SRAM_ETH_DESC", DT_REG_ADDR(sram_eth_node), REGION_PPB_ATTR(REGION_256B)),
  #endif
  #endif
-+       MPU_REGION_ENTRY("BACKUP_SRAM", 0x38800000, REGION_RAM_ATTR(REGION_4K)),
++	MPU_REGION_ENTRY("BACKUP_SRAM", 0x38800000, REGION_RAM_ATTR(REGION_4K)),
++    MPU_REGION_ENTRY("SRAM_PKA_BUF", 0x30000000, REGION_RAM_NOCACHE_ATTR(REGION_16K)),
  };
  
  const struct arm_mpu_config mpu_config = {
 diff --git zephyr/subsys/net/lib/sockets/sockets_inet.c zephyr/subsys/net/lib/sockets/sockets_inet.c
-index ae47f2aba8a..7f63ac1d7c4 100644
+index ae47f2aba8a..31daed0b685 100644
 --- zephyr/subsys/net/lib/sockets/sockets_inet.c
 +++ zephyr/subsys/net/lib/sockets/sockets_inet.c
 @@ -96,6 +96,7 @@ static int zsock_socket_internal(int family, int type, int proto)
-        struct net_context *ctx;
-        int res;
+ 	struct net_context *ctx;
+ 	int res;
  
-+       NET_INFO("F:%s -- L:%d -- fd:%d\r\n", __func__, __LINE__, fd);
-        if (fd < 0) {
-                return -1;
-        }
++	NET_INFO("F:%s -- L:%d -- fd:%d", __func__, __LINE__, fd);
+ 	if (fd < 0) {
+ 		return -1;
+ 	}
 @@ -117,6 +118,7 @@ static int zsock_socket_internal(int family, int type, int proto)
-                return -1;
-        }
+ 		return -1;
+ 	}
  
-+       NET_INFO("F:%s -- L:%d -- ret:%d\r\n", __func__, __LINE__, res);
-        /* Initialize user_data, all other calls will preserve it */
-        ctx->user_data = NULL;
++	NET_INFO("F:%s -- L:%d -- ret:%d", __func__, __LINE__, res);
+ 	/* Initialize user_data, all other calls will preserve it */
+ 	ctx->user_data = NULL;
  
 
-Empty diff in 64 projects.
+=== diff for mbedtls (modules/crypto/mbedtls):
+diff --git modules/crypto/mbedtls/library/bignum.c modules/crypto/mbedtls/library/bignum.c
+index f6b8f9998..839ee43cb 100644
+--- modules/crypto/mbedtls/library/bignum.c
++++ modules/crypto/mbedtls/library/bignum.c
+@@ -1734,7 +1734,7 @@ cleanup:
+     return ret;
+ }
+ 
+-int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
++__attribute__((weak)) int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
+                         const mbedtls_mpi *E, const mbedtls_mpi *N,
+                         mbedtls_mpi *prec_RR)
+ {
+@@ -2057,7 +2057,7 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
+     return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+ }
+ 
+-#if defined(MBEDTLS_GENPRIME)
++#if 1
+ 
+ /* Gaps between primes, starting at 3. https://oeis.org/A001223 */
+ static const unsigned char small_prime_gaps[] = {
+diff --git modules/crypto/mbedtls/library/rsa.c modules/crypto/mbedtls/library/rsa.c
+index 08267dbfc..526362688 100644
+--- modules/crypto/mbedtls/library/rsa.c
++++ modules/crypto/mbedtls/library/rsa.c
+@@ -1249,7 +1249,7 @@ int mbedtls_rsa_public(mbedtls_rsa_context *ctx,
+     }
+ 
+     olen = ctx->len;
+-    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod_unsafe(&T, &T, &ctx->E, &ctx->N, &ctx->RN));
++    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&T, &T, &ctx->E, &ctx->N, &ctx->RN));
+     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&T, output, olen));
+ 
+ cleanup:
+diff --git modules/crypto/mbedtls/library/ssl_client.c modules/crypto/mbedtls/library/ssl_client.c
+index 0bd00cd91..4cee94960 100644
+--- modules/crypto/mbedtls/library/ssl_client.c
++++ modules/crypto/mbedtls/library/ssl_client.c
+@@ -350,6 +350,9 @@ static int ssl_write_client_hello_cipher_suites(
+     cipher_suites = p;
+     for (size_t i = 0; ciphersuite_list[i] != 0; i++) {
+         int cipher_suite = ciphersuite_list[i];
++        /*
++            if(cipher_suite == 0x003d || cipher_suite == 0x003d || cipher_suite == 0x0035 || cipher_suite == 0x009c || cipher_suite == 0x003c || cipher_suite == 0x002f) continue;
++        */
+         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+ 
+         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(cipher_suite);
+diff --git modules/crypto/mbedtls/library/ssl_tls.c modules/crypto/mbedtls/library/ssl_tls.c
+index 30cde2792..1312dd72f 100644
+--- modules/crypto/mbedtls/library/ssl_tls.c
++++ modules/crypto/mbedtls/library/ssl_tls.c
+@@ -4583,7 +4583,7 @@ int mbedtls_ssl_handshake_step(mbedtls_ssl_context *ssl)
+ 
+ #if defined(MBEDTLS_SSL_CLI_C)
+     if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+-        MBEDTLS_SSL_DEBUG_MSG(2, ("client state: %s",
++        MBEDTLS_SSL_DEBUG_MSG(0, ("client state: %s",
+                                   mbedtls_ssl_states_str((mbedtls_ssl_states) ssl->state)));
+ 
+         switch (ssl->state) {
+diff --git modules/crypto/mbedtls/library/ssl_tls12_client.c modules/crypto/mbedtls/library/ssl_tls12_client.c
+index 65d6dbd1a..dabfaf4d0 100644
+--- modules/crypto/mbedtls/library/ssl_tls12_client.c
++++ modules/crypto/mbedtls/library/ssl_tls12_client.c
+@@ -1387,7 +1387,7 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
+     MBEDTLS_SSL_DEBUG_MSG(3, ("%s session has been resumed",
+                               ssl->handshake->resume ? "a" : "no"));
+ 
+-    MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, chosen ciphersuite: %04x", (unsigned) i));
++    MBEDTLS_SSL_DEBUG_MSG(0, ("server hello, chosen ciphersuite: %04x", (unsigned) i));
+     MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, compress alg.: %d",
+                               buf[37 + n]));
+ 
+@@ -1423,7 +1423,7 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
+         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+     }
+ 
+-    MBEDTLS_SSL_DEBUG_MSG(3,
++    MBEDTLS_SSL_DEBUG_MSG(0,
+                           ("server hello, chosen ciphersuite: %s", suite_info->name));
+ 
+ #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+
+Empty diff in 63 projects.
 ```
 
 
