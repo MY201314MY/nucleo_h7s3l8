@@ -1,16 +1,12 @@
 #include <stdio.h>
 #include <string.h>
-
-/* mbedTLS headers */
 #include <mbedtls/entropy.h>
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/ecdh.h>
 #include <mbedtls/ecp.h>
-
-/* Zephyr headers */
 #include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
 
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(ecdhe, LOG_LEVEL_DBG);
 
 /**
@@ -116,7 +112,6 @@ int _ecdhe(int type)
         LOG_INF("[success] shared Secrets match! (%d bytes)", (int)key_len);
     } else {
         LOG_ERR("[failure] shared Secrets mismatch!");
-        ret = -1;
     }
 
 exit:

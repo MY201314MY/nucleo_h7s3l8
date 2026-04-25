@@ -2,6 +2,7 @@
 #include <mbedtls/error.h>
 #include <zephyr/kernel.h>
 #include "stm32h7rsxx_hal.h"
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(rsa_alt, LOG_LEVEL_DBG);
 

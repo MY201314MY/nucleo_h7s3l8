@@ -2,7 +2,6 @@
 #include <zephyr/syscalls/time_units.h>
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
-
 #include <stm32h7rsxx_hal.h>
 
 #include <zephyr/logging/log.h>
