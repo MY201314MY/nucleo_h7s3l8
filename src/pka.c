@@ -312,11 +312,6 @@ int pka_operations(const struct shell *sh, size_t argc, char *argv[])
         void pka_check_curve();
         pka_check_curve();
     }
-    else if(operation == 5)
-    {
-        int _rsa(int type);
-        _rsa(0);
-    }
     else {
         LOG_DBG("unknown operation");
     }

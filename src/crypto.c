@@ -5,7 +5,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(crypto, LOG_LEVEL_DBG);
 
-static void _ecdsa_software_test(void) {
+static void _ecdsa_test(void) {
     extern int _ecdsa(int type);
     _ecdsa(0);
     _ecdsa(1);
@@ -22,19 +22,31 @@ static int _ecdhe_test()
     return 0;
 }
 
+static int _rsa_test()
+{
+    int _rsa(int type);
+    _rsa(0);
+
+    return 0;
+}
+
 static int example_crypto_operations(const struct shell *sh, size_t argc, char *argv[])
 {
     int operation = atoi(argv[1]);
     
     LOG_DBG("operation %d selected", operation);
 
-    if(operation == 7)
+    if(operation == 0)
     {
-        _ecdsa_software_test();
+        _ecdsa_test();
     }
-    else if(operation == 8)
+    else if(operation == 1)
     {
         _ecdhe_test();
+    }
+    else if(operation == 2)
+    {
+        _rsa_test();
     }
     else 
     {
