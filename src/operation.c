@@ -16,7 +16,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(operation, LOG_LEVEL_DBG);
 
-int example_operations(const struct shell *sh, size_t argc, char *argv[])
+static int example_operations(const struct shell *sh, size_t argc, char *argv[])
 {
     int ret = -1;
     int operation = atoi(argv[1]);
