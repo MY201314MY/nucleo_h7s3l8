@@ -28,9 +28,11 @@ LOG_MODULE_REGISTER(_net_https_client, LOG_LEVEL_DBG);
 //uint8_t HTTPS_HOST[128] = "www.howssl.com";
 //uint8_t HTTPS_HOST[128] = "www.example.com";
 //uint8_t HTTPS_HOST[128] = "www.baidu.com";
-uint8_t HTTPS_HOST[128] = "api.bilibili.com";
+//uint8_t HTTPS_HOST[128] = "api.bilibili.com";
 //https://iot-solutions.s3.amazonaws.com/LE910R1_EAG/le910r1_6_0_B003/system_patch_sig_6_0_b002_TO_6.0_b003_EAG.bin_1
 //uint8_t HTTPS_HOST[128] = "iot-solutions.s3.amazonaws.com";
+
+uint8_t HTTPS_HOST[128] = "ecc256.badssl.com";
 
 #define MAX_RECV_BUF_LEN 2048
 
@@ -167,7 +169,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
         if (ret < 0) {
             LOG_ERR("can't connect to remote host, ret : %d", -errno);
             close(fd);
-            continue;
+            break;
         }
 
         if (fd >= 0 && IS_ENABLED(CONFIG_NET_IPV4)) {
@@ -176,7 +178,11 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
             memset(&req, 0, sizeof(req));
 
             req.method = HTTP_GET;
+        #if 0
             req.url = "/x/relation/stat?vmid=128505057";
+        #else
+            req.url = "/";
+        #endif
             req.header_fields = head;
             req.host = HTTPS_HOST;
             req.protocol = "HTTP/1.1";

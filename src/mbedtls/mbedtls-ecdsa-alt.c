@@ -23,6 +23,8 @@ int mbedtls_ecdsa_genkey(mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
     uint8_t rand_priv[66] = {0};
     uint8_t Qx[66] = {0}, Qy[66] = {0};
 
+    LOG_DBG("genkey...");
+
     switch (gid) {
         case MBEDTLS_ECP_DP_SECP192R1:
             priv_len = pub_len = 24;
@@ -114,6 +116,8 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
     PKA_ECDSASignInTypeDef in = {0};
     PKA_ECDSASignOutTypeDef out = {0};
 
+    LOG_DBG("sign...");
+
     memset(&in, 0, sizeof(in));
     memset(&out, 0, sizeof(out));
 
@@ -164,6 +168,8 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp, const unsigned char *buf, size_
     uint32_t modulusSize = 0, orderSize = 0, coefSign = 1;
     uint8_t r_bin[66] = {0}, s_bin[66] = {0}, q_bin[2*66+1] = {0};
     PKA_ECDSAVerifInTypeDef in = {0};
+
+    LOG_DBG("verify...");
 
     memset(&in, 0, sizeof(in));
 

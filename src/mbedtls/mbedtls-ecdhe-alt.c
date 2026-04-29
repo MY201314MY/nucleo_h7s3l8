@@ -25,6 +25,8 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp,
     uint8_t priv_key[66] = {0};
     uint8_t Qx[66] = {0}, Qy[66] = {0};
 
+    LOG_DBG("gen public");
+
     switch(grp->id) {
         case MBEDTLS_ECP_DP_SECP192R1: len = 24; break;
         case MBEDTLS_ECP_DP_SECP256R1: len = 32; break;
@@ -35,7 +37,9 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp,
     if ((ret = f_rng(p_rng, priv_key, len)) != 0)
         return ret;
 
-    LOG_HEXDUMP_INF(priv_key, len, "d");
+    /*
+        LOG_HEXDUMP_INF(priv_key, len, "d");
+    */
 
     ret = pka_compute_public_key(grp->id, priv_key, Qx, Qy);
     if (ret != 0)
@@ -62,6 +66,8 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp,
 
     PKA_ECCDoubleBaseLadderInTypeDef in = {0};
     PKA_ECCDoubleBaseLadderOutTypeDef out = {0};
+
+    LOG_DBG("compute shared");
 
     switch(grp->id) {
         case MBEDTLS_ECP_DP_SECP192R1:
