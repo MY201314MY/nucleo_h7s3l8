@@ -24,15 +24,26 @@ LOG_MODULE_REGISTER(_net_https_client, LOG_LEVEL_DBG);
 #define CA_CERTIFICATE_TAG 2
 
 #define HTTPS_PORT "443"
+typedef struct {
+    uint8_t host[128];
+    uint8_t path[128];
+} http_host_t;
 
-//uint8_t HTTPS_HOST[128] = "www.howssl.com";
-//uint8_t HTTPS_HOST[128] = "www.example.com";
-//uint8_t HTTPS_HOST[128] = "www.baidu.com";
-//uint8_t HTTPS_HOST[128] = "api.bilibili.com";
-//https://iot-solutions.s3.amazonaws.com/LE910R1_EAG/le910r1_6_0_B003/system_patch_sig_6_0_b002_TO_6.0_b003_EAG.bin_1
-//uint8_t HTTPS_HOST[128] = "iot-solutions.s3.amazonaws.com";
-
-uint8_t HTTPS_HOST[128] = "ecc256.badssl.com";
+http_host_t http_host[] = 
+{
+    {
+        .host = "ecc256.badssl.com",
+        .path = "/"
+    },
+    {
+        .host = "api.bilibili.com",
+        .path = "/x/relation/stat?vmid=128505057"
+    },
+    {
+        .host = "www.example.com",
+        .path = "/"
+    },
+};
 
 #define MAX_RECV_BUF_LEN 2048
 
@@ -69,6 +80,25 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 {
 	int fd = -1;
 	int32_t timeout = 30 * MSEC_PER_SEC;
+    http_host_t *p = NULL;
+    if(argc == 2)
+    {
+        int operation = atoi(argv[1]);
+        
+        LOG_DBG("operation %d selected", operation);
+
+        if(operation>= ARRAY_SIZE(http_host))
+        {
+            LOG_ERR("unknown operation");
+            return 0;
+        }
+
+        p = &http_host[operation];
+    }
+    else
+    {
+        p = &http_host[0];
+    }
 
     static struct addrinfo hints = {
         .ai_family = AF_INET,
@@ -87,9 +117,9 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 		LOG_ERR("Failed to add device certificate: %d", ret);
 	}
 
-	LOG_DBG("request host : %s", HTTPS_HOST);
+	LOG_DBG("request host : %s", p->host);
 
-	ret = getaddrinfo(HTTPS_HOST, HTTPS_PORT, &hints, &res);
+	ret = getaddrinfo(p->host, HTTPS_PORT, &hints, &res);
     if(ret != 0)
     {
         LOG_ERR("getaddrinfo error ret : %d", ret);
@@ -158,10 +188,10 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
             goto end;
         }
 
-        ret = setsockopt(fd, SOL_TLS, TLS_HOSTNAME, HTTPS_HOST, strlen(HTTPS_HOST));
+        ret = setsockopt(fd, SOL_TLS, TLS_HOSTNAME, p->host, strlen(p->host));
 
         if (ret < 0) {
-            LOG_ERR("failed to set %s : (%d)", HTTPS_HOST, -errno);
+            LOG_ERR("failed to set %s : (%d)", p->host, -errno);
             ret = -errno;
         }
 
@@ -178,13 +208,9 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
             memset(&req, 0, sizeof(req));
 
             req.method = HTTP_GET;
-        #if 0
-            req.url = "/x/relation/stat?vmid=128505057";
-        #else
-            req.url = "/";
-        #endif
+            req.url = p->path;
             req.header_fields = head;
-            req.host = HTTPS_HOST;
+            req.host = p->host;
             req.protocol = "HTTP/1.1";
             req.response = response_cb;
             req.recv_buf = recv_buf_ipv4;
