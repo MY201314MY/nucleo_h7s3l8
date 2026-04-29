@@ -5,19 +5,9 @@
 #include <stm32h7rsxx_hal.h>
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(pka, LOG_LEVEL_DBG);
+LOG_MODULE_DECLARE(pka, LOG_LEVEL_DBG);
 
 static PKA_HandleTypeDef hpka;
-
-void HAL_PKA_OperationCpltCallback(PKA_HandleTypeDef *hpka)
-{
-    LOG_INF("finished");
-}
-
-void HAL_PKA_ErrorCallback(PKA_HandleTypeDef *hpka)
-{
-    LOG_ERR("pka error.");
-}
 
 static int pka_ecc_double_base_ladder()
 {

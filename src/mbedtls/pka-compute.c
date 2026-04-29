@@ -1,7 +1,5 @@
 #include <string.h>
 #include <stm32h7rsxx_hal.h>
-#include <stm32h7rsxx_hal_pka.h>
-
 #include <mbedtls/ecdsa.h>
 #include <mbedtls/ecp.h>
 #include <mbedtls/bignum.h>
@@ -11,7 +9,7 @@
 #include "mbedtls-alt.h"
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(pka_compute, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(pka, LOG_LEVEL_DBG);
 
 static PKA_HandleTypeDef hpka = { .Instance = PKA, .State = HAL_PKA_STATE_READY };
 

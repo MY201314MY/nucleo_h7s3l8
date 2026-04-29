@@ -1,7 +1,5 @@
 #include <string.h>
 #include <stm32h7rsxx_hal.h>
-#include <stm32h7rsxx_hal_pka.h>
-
 #include <mbedtls/ecdsa.h>
 #include <mbedtls/ecp.h>
 #include <mbedtls/bignum.h>
