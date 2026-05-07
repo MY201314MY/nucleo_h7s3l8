@@ -267,11 +267,11 @@ int crypto_pka_init(void)
 
     if(status == HAL_OK)
     {
-        LOG_INF("HAL_PKA_Init success.");
+        LOG_INF("crypto_pka_init success.");
     }
     else
     {
-        LOG_ERR("HAL_PKA_Init failed with ret=%d", status);
+        LOG_ERR("crypto_pka_init failed with ret=%d", status);
         return -ENODEV;
     }
 

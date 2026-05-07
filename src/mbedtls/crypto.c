@@ -30,6 +30,15 @@ static int _rsa_test()
     return 0;
 }
 
+static int _hash_test()
+{
+    int crypto_hash_test();
+
+    crypto_hash_test();
+    
+    return 0;
+}
+
 static int example_crypto_operations(const struct shell *sh, size_t argc, char *argv[])
 {
     int operation = atoi(argv[1]);
@@ -47,6 +56,10 @@ static int example_crypto_operations(const struct shell *sh, size_t argc, char *
     else if(operation == 2)
     {
         _rsa_test();
+    }
+    else if(operation == 3)
+    {
+        _hash_test();
     }
     else 
     {

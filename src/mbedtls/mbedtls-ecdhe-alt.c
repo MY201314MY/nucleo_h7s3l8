@@ -6,7 +6,7 @@
 #include <mbedtls/platform_util.h>
 #include <mbedtls/error.h>
 
-#include "mbedtls-alt.h"
+#include "mbedtls-curve-alt.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(ecdhe_alt, LOG_LEVEL_DBG);
