@@ -15,6 +15,7 @@
 #include <zephyr/posix/poll.h>
 #include <mbedtls/x509.h>
 #include <mbedtls/x509_crt.h>
+#include <mbedtls/ssl.h>
 
 #include "certs.h"
 
@@ -43,6 +44,10 @@ http_host_t http_host[] =
         .host = "www.example.com",
         .path = "/"
     },
+    {
+        .host = "www.baidu.com",
+        .path = "/"
+    },
 };
 
 #define MAX_RECV_BUF_LEN 2048
@@ -56,16 +61,18 @@ static int response_cb(struct http_response *rsp,
 {
 	if (final_data == HTTP_DATA_MORE) {
 	} else if (final_data == HTTP_DATA_FINAL) {
-		if(rsp->body_frag_start != NULL)
-        {
-            int length = rsp->data_len - (rsp->body_frag_start - rsp->recv_buf);
-            LOG_INF("http received body length : %d", length);
-            LOG_HEXDUMP_DBG(rsp->body_frag_start, length, "http body recv");
-        }
+        ;
 	}
 
 	LOG_INF("Response to %s", (const char *)user_data);
 	LOG_INF("Response status %s", rsp->http_status);
+
+    if(rsp->body_frag_start != NULL)
+    {
+        int length = rsp->data_len - (rsp->body_frag_start - rsp->recv_buf);
+        LOG_INF("http received body length : %d", length);
+        LOG_HEXDUMP_DBG(rsp->body_frag_start, length, "http body recv");
+    }
 
     return 0;
 }
@@ -73,6 +80,8 @@ static int response_cb(struct http_response *rsp,
 /* It's useless for host : www.example.com. */
 static const char *head[] = {
 	"Range: bytes=0-511\r\n",
+    "User-Agent: curl/7.81.0\r\n",
+    "Accept: */*\r\n",
 	NULL
 };
 
@@ -102,8 +111,9 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 
     static struct addrinfo hints = {
         .ai_family = AF_INET,
-		.ai_flags = AI_NUMERICSERV,
+		.ai_flags = AI_V4MAPPED,
 		.ai_socktype = SOCK_STREAM,
+        .ai_protocol = IPPROTO_TCP,
 	};
 	struct addrinfo *res, *index;
 	char addr[64];
@@ -149,13 +159,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
             continue;;
         }
 
-        enum {
-            NONE = 0,
-            OPTIONAL = 1,
-            REQUIRED = 2,
-        };
-
-        int verify = REQUIRED;
+        int verify = MBEDTLS_SSL_VERIFY_REQUIRED;
 
         ret = setsockopt(fd, SOL_TLS, TLS_PEER_VERIFY, &verify, sizeof(verify));
         if (ret) {
