@@ -48,6 +48,10 @@ http_host_t http_host[] =
         .host = "www.baidu.com",
         .path = "/"
     },
+    {
+        .host = "www.apple.com",
+        .path = "/v/50-years-of-thinking-different/a/images/overview/letter_signature__d148fdm56y6a_small.png"
+    },
 };
 
 #define MAX_RECV_BUF_LEN 2048
