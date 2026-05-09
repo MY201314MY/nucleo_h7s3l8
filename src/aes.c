@@ -67,7 +67,6 @@ int crypto_aes_init()
 
 static int crypto_aes_operation(const struct shell *sh, size_t argc, char *argv[])
 {
-    int ret = -1;
     int operation = atoi(argv[1]);
     HAL_StatusTypeDef status = HAL_OK;
     
@@ -80,6 +79,7 @@ static int crypto_aes_operation(const struct shell *sh, size_t argc, char *argv[
         if (status == HAL_OK)
         {
             LOG_HEXDUMP_INF((uint8_t*)EncryptedText, sizeof(EncryptedText), "encrypt");
+            LOG_HEXDUMP_INF((uint8_t*)Ciphertext, sizeof(Ciphertext), "compare");
         }
     }
     else if(operation == 1)
