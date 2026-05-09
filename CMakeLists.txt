@@ -12,6 +12,7 @@ test_sysbuild()
 
 target_sources(app PRIVATE src/main.c
     src/operation.c
+    src/aes.c
     
     src/mbedtls/pka.c
     src/mbedtls/pka-compute.c

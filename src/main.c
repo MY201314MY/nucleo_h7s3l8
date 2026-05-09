@@ -116,6 +116,9 @@ int main(void)
 
 	net_if_foreach(dhcpv4_client, NULL);
 
+	extern int crypto_aes_init();
+	crypto_aes_init();
+
 	while (1) {
 		gpio_pin_toggle_dt(&led0);
 		k_sleep(K_MSEC(LED_DELAY_MS));
