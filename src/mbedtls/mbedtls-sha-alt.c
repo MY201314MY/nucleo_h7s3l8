@@ -12,7 +12,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(hash, LOG_LEVEL_DBG);
 
-HASH_HandleTypeDef hhash = {0};
+static HASH_HandleTypeDef hhash = {0};
 
 int crypto_hash_init(void)
 {
