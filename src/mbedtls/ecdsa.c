@@ -51,6 +51,11 @@ int _ecdsa(int type)
             printk("\r\n");
             LOG_INF("[ECDSA] Using SECP384R1");
             break;
+        case 3:
+            curve = MBEDTLS_ECP_DP_SECP521R1;
+            printk("\r\n");
+            LOG_INF("[ECDSA] Using SECP521R1");
+            break;
         default:
             printk("\r\n");
             LOG_ERR("Unknown type: %d", type);

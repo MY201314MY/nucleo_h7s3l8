@@ -29,6 +29,7 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp,
         case MBEDTLS_ECP_DP_SECP192R1: len = 24; break;
         case MBEDTLS_ECP_DP_SECP256R1: len = 32; break;
         case MBEDTLS_ECP_DP_SECP384R1: len = 48; break;
+        case MBEDTLS_ECP_DP_SECP521R1: len = 66; break;
         default: return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
     }
 
@@ -99,6 +100,17 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp,
             in.primeOrderSize = secp384r1_orderSize;
             in.integerM = secp384r1_m;
             in.basePointZ1 = secp384r1_Gz;
+            break;
+
+        case MBEDTLS_ECP_DP_SECP521R1:
+            size = 66;
+            in.modulus = secp521r1_p;
+            in.coefA = secp521r1_a;
+            in.coefSign = secp521r1_coefSign;
+            in.modulusSize = secp521r1_modulusSize;
+            in.primeOrderSize = secp521r1_orderSize;
+            in.integerM = secp521r1_m;
+            in.basePointZ1 = secp521r1_Gz;
             break;
 
         default:

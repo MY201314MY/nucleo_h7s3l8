@@ -45,6 +45,11 @@ int _ecdhe(int type)
             key_len = 48;
             LOG_INF("[ECDHE] Using SECP384R1");
             break;
+        case 3:
+            curve = MBEDTLS_ECP_DP_SECP521R1;
+            key_len = 66;
+            LOG_INF("[ECDHE] Using SECP521R1");
+            break;
         default:
             LOG_ERR("Unknown type: %d", type);
             return -1;

@@ -33,6 +33,9 @@ int mbedtls_ecdsa_genkey(mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
         case MBEDTLS_ECP_DP_SECP384R1:
             priv_len = pub_len = 48;
             break;
+        case MBEDTLS_ECP_DP_SECP521R1:
+            priv_len = pub_len = 66;
+            break;
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
@@ -55,6 +58,9 @@ int mbedtls_ecdsa_genkey(mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
             break;
         case MBEDTLS_ECP_DP_SECP384R1:
             mbedtls_mpi_read_binary(&mpi_n, secp384r1_n, priv_len);
+            break;
+        case MBEDTLS_ECP_DP_SECP521R1:
+            mbedtls_mpi_read_binary(&mpi_n, secp521r1_n, priv_len);
             break;
         default:
             mbedtls_mpi_free(&mpi_n);
@@ -126,6 +132,8 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
             size = 32; p = secp256r1_p; a = secp256r1_a; b = secp256r1_b; gx = secp256r1_Gx; gy = secp256r1_Gy; n = secp256r1_n; modulusSize = secp256r1_modulusSize; orderSize = secp256r1_orderSize; coefSign = secp256r1_coefSign; break;
         case MBEDTLS_ECP_DP_SECP384R1:
             size = 48; p = secp384r1_p; a = secp384r1_a; b = secp384r1_b; gx = secp384r1_Gx; gy = secp384r1_Gy; n = secp384r1_n; modulusSize = secp384r1_modulusSize; orderSize = secp384r1_orderSize; coefSign = secp384r1_coefSign; break;
+        case MBEDTLS_ECP_DP_SECP521R1:
+            size = 66; p = secp521r1_p; a = secp521r1_a; b = secp521r1_b; gx = secp521r1_Gx; gy = secp521r1_Gy; n = secp521r1_n; modulusSize = secp521r1_modulusSize; orderSize = secp521r1_orderSize; coefSign = secp521r1_coefSign; break;
         default:
             return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
     }
@@ -178,6 +186,8 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp, const unsigned char *buf, size_
             size = 32; p = secp256r1_p; a = secp256r1_a; gx = secp256r1_Gx; gy = secp256r1_Gy; n = secp256r1_n; modulusSize = secp256r1_modulusSize; orderSize = secp256r1_orderSize; coefSign = secp256r1_coefSign; break;
         case MBEDTLS_ECP_DP_SECP384R1:
             size = 48; p = secp384r1_p; a = secp384r1_a; gx = secp384r1_Gx; gy = secp384r1_Gy; n = secp384r1_n; modulusSize = secp384r1_modulusSize; orderSize = secp384r1_orderSize; coefSign = secp384r1_coefSign; break;
+        case MBEDTLS_ECP_DP_SECP521R1:
+            size = 66; p = secp521r1_p; a = secp521r1_a; gx = secp521r1_Gx; gy = secp521r1_Gy; n = secp521r1_n; modulusSize = secp521r1_modulusSize; orderSize = secp521r1_orderSize; coefSign = secp521r1_coefSign; break;
         default:
             return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
     }

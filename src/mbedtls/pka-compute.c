@@ -61,6 +61,20 @@ int pka_compute_public_key(mbedtls_ecp_group_id gid, const uint8_t *priv_key, ui
         in.basePointX2 = NULL;
         in.basePointY2 = NULL;
         in.basePointZ2 = NULL;
+    } else if (gid == MBEDTLS_ECP_DP_SECP521R1) {
+        in.modulusSize = secp521r1_modulusSize;
+        in.primeOrderSize = secp521r1_orderSize;
+        in.modulus = secp521r1_p;
+        in.coefSign = secp521r1_coefSign;
+        in.coefA = secp521r1_a;
+        in.integerK = priv_key;
+        in.integerM = secp521r1_m;
+        in.basePointX1 = secp521r1_Gx;
+        in.basePointY1 = secp521r1_Gy;
+        in.basePointZ1 = secp521r1_Gz;
+        in.basePointX2 = NULL;
+        in.basePointY2 = NULL;
+        in.basePointZ2 = NULL;
     } else {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
@@ -85,8 +99,13 @@ void pka_check_curve()
         0xb1, 0xe7, 0x93, 0x39, 0xd0, 0x2a, 0x6c, 0x03, 0x31, 0xb0, 0x57, 0xb2, 0xe8, 0x4f, 0xb9, 0x3a, 0x26, 0x48, 0x34, 0x1d, 0x7c, 0x89, 0x1f, 0x3e, 
         0xb1, 0xe7, 0x93, 0x39, 0xd0, 0x2a, 0x6c, 0x03, 0x31, 0xb0, 0x57, 0xb2, 0xe8, 0x4f, 0xb9, 0x3a, 0x26, 0x48, 0x34, 0x1d, 0x7c, 0x89, 0x1f, 0x3e
     };
-    uint8_t Qx[48] = {0};
-    uint8_t Qy[48] = {0};
+    static const uint8_t  secp521r1_k[66]       = {
+        0xb1, 0xe7, 0x93, 0x39, 0xd0, 0x2a, 0x6c, 0x03, 0x31, 0xb0, 0x57, 0xb2, 0xe8, 0x4f, 0xb9, 0x3a, 0x26, 0x48, 0x34, 0x1d, 0x7c, 0x89, 0x1f, 0x3e, 
+        0xb1, 0xe7, 0x93, 0x39, 0xd0, 0x2a, 0x6c, 0x03, 0x31, 0xb0, 0x57, 0xb2, 0xe8, 0x4f, 0xb9, 0x3a, 0x26, 0x48, 0x34, 0x1d, 0x7c, 0x89, 0x1f, 0x3e,
+        0xb1, 0xe7, 0x93, 0x39, 0xd0, 0x2a, 0x6c, 0x03, 0x31, 0xb0, 0x57, 0xb2, 0xe8, 0x4f, 0xb9, 0x3a, 0x26, 0x48
+    };
+    uint8_t Qx[72] = {0};
+    uint8_t Qy[72] = {0};
 
     LOG_INF("Check PKA with SECP192R1, SECP256R1 and SECP384R1 curves.");
 
@@ -106,5 +125,11 @@ void pka_check_curve()
     pka_compute_public_key(MBEDTLS_ECP_DP_SECP384R1, secp384r1_k, Qx, Qy);
     LOG_HEXDUMP_INF(Qx, 48, "Qx (SECP384R1)");
     LOG_HEXDUMP_INF(Qy, 48, "Qy (SECP384R1)");
+
+    LOG_HEXDUMP_INF(secp521r1_k, sizeof(secp521r1_k), "d (SECP521R1)");
+    pka_compute_public_key(MBEDTLS_ECP_DP_SECP521R1, secp521r1_k, Qx, Qy);
+    LOG_HEXDUMP_INF(Qx, 66, "Qx (SECP521R1)");
+    LOG_HEXDUMP_INF(Qy, 66, "Qy (SECP521R1)");
+
     printk("\r\n");
 }
