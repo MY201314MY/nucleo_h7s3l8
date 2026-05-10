@@ -6,7 +6,9 @@
 #include <stm32h7rsxx_hal.h>
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(aes, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(aes, LOG_LEVEL_INF);
+
+#define TIMEOUT_VALUE 0xFF
 
 static CRYP_HandleTypeDef hcryp = {0};
 
@@ -33,6 +35,9 @@ uint32_t EncryptedText[12]={0};
 
 /* Used for storing the decrypted text */
 uint32_t DecryptedText[12]={0};
+
+/* Used for storing the computed MAC (aTAG) */
+uint32_t TAG[4]={0};
 
 int crypto_aes_init()
 {
@@ -70,16 +75,40 @@ static int crypto_aes_operation(const struct shell *sh, size_t argc, char *argv[
     int operation = atoi(argv[1]);
     HAL_StatusTypeDef status = HAL_OK;
     
-    LOG_DBG("operation %d selected", operation);
+    LOG_INF("operation %d selected", operation);
 
     if(operation == 0)
     {
-        status = HAL_CRYP_Encrypt(&hcryp, Plaintext, PLAINTEXT_SIZE, EncryptedText, 0xFF);
-        LOG_INF("status %d", status);
+        status = HAL_CRYP_Encrypt(&hcryp, Plaintext, PLAINTEXT_SIZE, EncryptedText, TIMEOUT_VALUE);
         if (status == HAL_OK)
         {
             LOG_HEXDUMP_INF((uint8_t*)EncryptedText, sizeof(EncryptedText), "encrypt");
-            LOG_HEXDUMP_INF((uint8_t*)Ciphertext, sizeof(Ciphertext), "compare");
+            LOG_HEXDUMP_DBG((uint8_t*)Ciphertext, sizeof(Ciphertext), "compare");
+        }
+        else
+        {
+            LOG_INF("status %d", status);
+        }
+
+        status = HAL_CRYPEx_AESGCM_GenerateAuthTAG(&hcryp, TAG, TIMEOUT_VALUE);
+        if (status == HAL_OK)
+        {
+            LOG_HEXDUMP_INF((uint8_t*)TAG, sizeof(TAG), "tag");
+            LOG_HEXDUMP_DBG((uint8_t*)ExpectedTAG, sizeof(ExpectedTAG), "tag");
+        }
+        else
+        {
+            LOG_INF("status %d", status);
+        }
+
+        status = HAL_CRYP_Decrypt(&hcryp, Ciphertext, PLAINTEXT_SIZE, DecryptedText, TIMEOUT_VALUE);
+        if (status == HAL_OK)
+        {
+            LOG_HEXDUMP_INF((uint8_t*)DecryptedText, sizeof(DecryptedText), "decrypt");
+        }
+        else
+        {
+            LOG_INF("status %d", status);
         }
     }
     else if(operation == 1)
@@ -92,7 +121,7 @@ static int crypto_aes_operation(const struct shell *sh, size_t argc, char *argv[
     }
     else
     {
-        LOG_DBG("unknown operation");
+        LOG_WRN("unknown operation");
     }
     return 0;
 }
