@@ -2,6 +2,10 @@
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 
+#include <mbedtls/ssl.h>
+#include <mbedtls/cipher.h>
+#include <mbedtls/version.h>
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(crypto, LOG_LEVEL_DBG);
 
@@ -39,6 +43,21 @@ static int _hash_test()
     return 0;
 }
 
+static void debug_supported_ciphersuites(void)
+{
+    const int *ciphersuites = mbedtls_ssl_list_ciphersuites();
+    int i = 0;
+
+    LOG_INF("Supported TLS ciphersuites:");
+    while (ciphersuites[i] != 0) {
+        const char *name = mbedtls_ssl_get_ciphersuite_name(ciphersuites[i]);
+        if (name) {
+            LOG_INF("%s", name);
+        }
+        i++;
+    }
+}
+
 static int example_crypto_operations(const struct shell *sh, size_t argc, char *argv[])
 {
     int operation = atoi(argv[1]);
@@ -61,9 +80,13 @@ static int example_crypto_operations(const struct shell *sh, size_t argc, char *
     {
         _hash_test();
     }
+    else if(operation == 4)
+    {
+        debug_supported_ciphersuites();
+    }
     else 
     {
-        LOG_DBG("unknown operation");
+        LOG_WRN("unknown operation");
     }
 
     return 0;

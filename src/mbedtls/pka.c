@@ -302,7 +302,7 @@ int pka_operations(const struct shell *sh, size_t argc, char *argv[])
         pka_check_curve();
     }
     else {
-        LOG_DBG("unknown operation");
+        LOG_WRN("unknown operation");
     }
 
     return 0;

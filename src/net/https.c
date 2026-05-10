@@ -102,7 +102,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
 
         if(operation>= ARRAY_SIZE(http_host))
         {
-            LOG_ERR("unknown operation");
+            LOG_WRN("unknown operation");
             return 0;
         }
 

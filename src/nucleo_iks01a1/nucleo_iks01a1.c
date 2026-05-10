@@ -69,7 +69,7 @@ static int example_operations(const struct shell *sh, size_t argc, char *argv[])
     }
     else
     {
-        LOG_ERR("unknown operation");
+        LOG_WRN("unknown operation");
     }
 
     return 0;
