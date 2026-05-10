@@ -44,8 +44,8 @@ LOG_MODULE_REGISTER(net_mqtts_client_sample, LOG_LEVEL_DBG);
 #define MQTT_BUFFER_SIZE 256u
 #define APP_BUFFER_SIZE	 1024
 
-#define MAX_RETRIES	    10u
-#define BACKOFF_CONST_MS    5000000u
+#define MAX_RETRIES	        10u
+#define BACKOFF_CONST_MS    120000u
 
 static struct sockaddr_in broker_addr_in;
 
@@ -248,45 +248,20 @@ static void mqtt_client_setup(void)
 	tls_config->cert_nocopy = TLS_CERT_NOCOPY_NONE;
 }
 
-struct backoff_context {
-	uint16_t retries_count;
-	uint16_t max_retries;
-};
-
-static void backoff_context_init(struct backoff_context *bo)
-{
-	__ASSERT_NO_MSG(bo != NULL);
-
-	bo->retries_count = 0u;
-	bo->max_retries = MAX_RETRIES;
-}
-
-static void backoff_get_next(struct backoff_context *bo, uint32_t *next_backoff_ms)
-{
-	__ASSERT_NO_MSG(bo != NULL);
-	__ASSERT_NO_MSG(next_backoff_ms != NULL);
-
-	*next_backoff_ms = BACKOFF_CONST_MS;
-}
-
 static int mqtt_client_try_connect(void)
 {
 	int ret;
-	uint32_t backoff_ms;
-	struct backoff_context bo;
+	uint8_t retry = 0;
 
-	backoff_context_init(&bo);
-
-	while (bo.retries_count <= bo.max_retries) {
+	while (retry <= MAX_RETRIES) {
+		retry++;
 		ret = mqtt_connect(&client_ctx);
 		if (ret == 0) {
 			goto exit;
 		}
 
-		backoff_get_next(&bo, &backoff_ms);
-
-		LOG_ERR("Failed to connect: %d backoff delay: %u ms", ret, backoff_ms);
-		k_msleep(backoff_ms);
+		LOG_ERR("Failed to connect: %d backoff delay: %u ms", ret, BACKOFF_CONST_MS);
+		k_sleep(K_MSEC(BACKOFF_CONST_MS));
 	}
 
 exit:
