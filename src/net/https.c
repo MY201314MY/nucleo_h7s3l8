@@ -68,7 +68,6 @@ static int response_cb(struct http_response *rsp,
         ;
 	}
 
-	LOG_INF("Response to %s", (const char *)user_data);
 	LOG_INF("Response status %s", rsp->http_status);
 
     if(rsp->body_frag_start != NULL)
@@ -224,7 +223,7 @@ int example_https_request(const struct shell *sh, size_t argc, char *argv[])
             req.recv_buf = recv_buf_ipv4;
             req.recv_buf_len = sizeof(recv_buf_ipv4);
 
-            ret = http_client_req(fd, &req, timeout, "IPv4 GET");
+            ret = http_client_req(fd, &req, timeout, NULL);
             LOG_INF("ret (socket id) : %d", ret);
             break;
         }

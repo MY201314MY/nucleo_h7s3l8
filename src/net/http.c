@@ -37,7 +37,6 @@ static int response_cb(struct http_response *rsp,
         LOG_HEXDUMP_DBG(rsp->recv_buf, rsp->data_len, "http recv");
 	}
 
-	LOG_INF("response to %s", (const char *)user_data);
 	LOG_INF("response status %s", rsp->http_status);
 
 	return 0;
@@ -129,7 +128,7 @@ int example_http_request(const struct shell *sh, size_t argc, char *argv[])
 		req.recv_buf = recv_buf;
 		req.recv_buf_len = sizeof(recv_buf);
 
-		ret = http_client_req(fd, &req, timeout, "HTTP GET");
+		ret = http_client_req(fd, &req, timeout, NULL);
 
 		shutdown(fd, SHUT_RDWR);
 		break;
