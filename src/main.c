@@ -19,8 +19,6 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 
-__stm32_backup_sram_section int backup_boot_count;
-
 static struct net_mgmt_event_callback net_mgmt_cb;
 static struct net_mgmt_event_callback iface_mgmt_cb;
 
@@ -94,15 +92,12 @@ static void iface_handler(struct net_mgmt_event_callback *cb,
 }
 
 int main(void)
-{
-	backup_boot_count++;
-	
+{	
 	LOG_INF("app on: %p", (void *)__rom_region_start);
 	LOG_INF("arch : %s", CONFIG_ARCH);
 	LOG_INF("soc : %s", CONFIG_BOARD_QUALIFIERS);
 	LOG_INF("board : %s", CONFIG_BOARD);
 	LOG_INF("frequency : %d MHz (Cortex-M7)", sys_clock_hw_cycles_per_sec()/1000000);
-	LOG_INF("boot count : %d", backup_boot_count);
 
 	gpio_pin_configure_dt(&led0, GPIO_OUTPUT_INACTIVE);
 

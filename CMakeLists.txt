@@ -30,7 +30,5 @@ target_sources(app PRIVATE src/main.c
     src/net/https.c
     src/net/mqtts.c
     src/net/terminal.c
-
-    src/nucleo_iks01a1/nucleo_iks01a1.c
 )
 

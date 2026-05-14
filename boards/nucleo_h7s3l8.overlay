@@ -22,34 +22,6 @@
 		zephyr,flash-controller = &mx25uw25645;
 		zephyr,code-partition = &slot0_partition;
 	};
-
-	soc {
-		backup_sram: memory@38800000 {
-			compatible = "zephyr,memory-region", "st,stm32-backup-sram";
-			reg = <0x38800000 DT_SIZE_K(4)>;
-			clocks = <&rcc STM32_CLOCK(AHB4, 28)>;
-			zephyr,memory-region = "BACKUP_SRAM";
-			status = "okay";
-		};
-
-		rtc: rtc@58004000 {
-			compatible = "st,stm32-rtc";
-			reg = <0x58004000 0x400>;
-			interrupts = <32 0>;
-			clocks = <&rcc STM32_CLOCK(APB4, 16)>,
-				<&rcc STM32_SRC_LSE RTC_SEL(1)>;
-			prescaler = <32768>;
-			alarms-count = <2>;
-			alrm-exti-line = <17>;
-			status = "okay";
-
-			bbram: backup_regs {
-				compatible = "st,stm32-bbram";
-				st,backup-regs = <32>;
-				status = "okay";
-			};
-		};
-	};
 };
 
 &sram1 {
@@ -75,91 +47,13 @@
 	status = "okay";
 };
 
-&die_temp {
-	status = "okay";
-};
-
 &rng {
 	status = "okay";
 };
 
-&fdcan2 {
-	pinctrl-0 = <&fdcan2_rx_pb12 &fdcan2_tx_pb13>;
-	pinctrl-names = "default";
-	status = "okay";
-};
-
-&timers1 {
-	status = "okay";
-
-	pwm1 {
-		compatible = "st,stm32-pwm";
-		pinctrl-0 = <&tim1_ch4_pd10>;
-		pinctrl-names = "default";
-		status = "okay";
-		#pwm-cells = <3>;
-	};
-};
-
-&timers4 {
-	status = "okay";
-
-	pwm4 {
-		compatible = "st,stm32-pwm";
-		pinctrl-0 = <&tim4_ch2_pd13>;
-		pinctrl-names = "default";
-		status = "okay";
-		#pwm-cells = <3>;
-	};
-};
 
 &usart3 {
 	current-speed = <115200>;
-};
-
-&spi1 {
-	spim_dt: spi-device@0 {
-		compatible = "vnd,spi-device";
-		reg = <0>;
-		spi-max-frequency = <DT_FREQ_M(8)>;
-	};
-};
-
-/*
-	PA8 for mco1 has been used as I2C3_SCL.
-*/
-&mco2 {
-	status = "okay";
-	clocks = <&rcc STM32_SRC_HSE MCO1_SEL(2)>;
-	prescaler = <MCO1_PRE(MCO_PRE_DIV_11)>;
-	pinctrl-0 = <&rcc_mco_2_pc9>;
-	pinctrl-names = "default";
-};
-
-&adc2 {
-	st,adc-clock-source = "SYNC";
-	st,adc-prescaler = <4>;
-	status = "okay";
-};
-
-&vbat {
-	status = "okay";
-};
-
-&vref {
-	status = "okay";
-};
-
-&i2c1 {
-	hts221_x_nucleo_iks01a1: hts221@5f {
-		compatible = "st,hts221";
-		reg = <0x5f>;
-	};
-
-	lsm6ds0_x_nucleo_iks01a1: lsm6ds0@6b {
-		compatible = "st,lsm6ds0";
-		reg = <0x6b>;
-	};
 };
 
 /delete-node/ &green_led;
