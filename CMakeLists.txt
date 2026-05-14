@@ -15,20 +15,21 @@ target_sources(app PRIVATE src/main.c
     src/aes.c
     
     src/mbedtls/pka.c
-    src/mbedtls/pka-compute.c
     src/mbedtls/mbedtls-sha-alt.c
     src/mbedtls/mbedtls-ecdsa-alt.c
     src/mbedtls/mbedtls-ecdhe-alt.c
     src/mbedtls/mbedtls-exp-mod-alt.c
-    src/mbedtls/crypto.c
-    src/mbedtls/rsa.c
-    src/mbedtls/ecdsa.c
-    src/mbedtls/ecdhe.c
+
+    src/mbedtls/check/pka.c
+    src/mbedtls/check/crypto.c
+    src/mbedtls/check/rsa.c
+    src/mbedtls/check/ecdsa.c
+    src/mbedtls/check/ecdhe.c
 
     src/net/sntp.c
     src/net/http.c
     src/net/https.c
     src/net/mqtts.c
-    src/net/terminal.c
+    src/net/shell.c
 )
 

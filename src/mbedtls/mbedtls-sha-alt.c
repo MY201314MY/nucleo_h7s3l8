@@ -95,3 +95,4 @@ int crypto_hash_test()
 }
 
 SYS_INIT(crypto_hash_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
+

@@ -4,7 +4,7 @@ extern int example_sntp_request(const struct shell *sh, size_t argc, char *argv[
 extern int example_http_request(const struct shell *sh, size_t argc, char *argv[]);
 extern int example_https_request(const struct shell *sh, size_t argc, char *argv[]);
 
-SHELL_STATIC_SUBCMD_SET_CREATE(protocol_commands,
+SHELL_STATIC_SUBCMD_SET_CREATE(thing_commands,
 	SHELL_CMD(sntp, NULL,
 		"sntp request",
 		example_sntp_request),
@@ -17,5 +17,5 @@ SHELL_STATIC_SUBCMD_SET_CREATE(protocol_commands,
 	SHELL_SUBCMD_SET_END
 );
 
-SHELL_CMD_REGISTER(thing, &protocol_commands,
+SHELL_CMD_REGISTER(thing, &thing_commands,
 		   "example for net protocol", NULL);

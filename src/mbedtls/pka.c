@@ -1,322 +1,110 @@
-#include <stdlib.h>
-#include <zephyr/syscalls/time_units.h>
-#include <zephyr/kernel.h>
-#include <zephyr/shell/shell.h>
+#include <string.h>
 #include <stm32h7rsxx_hal.h>
+#include <mbedtls/ecdsa.h>
+#include <mbedtls/ecp.h>
+#include <mbedtls/bignum.h>
+#include <mbedtls/platform_util.h>
+#include <mbedtls/error.h>
+
+#include "mbedtls-curve.h"
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_DECLARE(pka, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(pka, LOG_LEVEL_DBG);
 
-static PKA_HandleTypeDef hpka;
+static PKA_HandleTypeDef hpka = { .Instance = PKA, .State = HAL_PKA_STATE_READY };
 
-static int pka_ecc_double_base_ladder()
+int pka_compute_public_key(mbedtls_ecp_group_id gid, const uint8_t *priv_key, uint8_t *Qx, uint8_t *Qy)
 {
     HAL_StatusTypeDef status = HAL_OK;
+    PKA_ECCDoubleBaseLadderInTypeDef in = {0};
+    PKA_ECCDoubleBaseLadderOutTypeDef out = {0};
 
-    /* vector 1 inputs and outputs */
-    uint32_t input1_modulusSize                                      = 24;
-    uint32_t input1_orderSize                                        = 24;
-    uint32_t input1_coefSign                                         = 1;
-    uint8_t input1_1PKA_ECC_DoubleBaseLadder_IN_MODULUS[24]          = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    uint8_t input1_1PKA_ECC_DoubleBaseLadder_IN_A_COEFF[24]          = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
-    uint8_t input1_1PKA_ECC_DoubleBaseLadder_IN_SCALAR_K[24]         = {0x25, 0x29, 0x7D, 0xD0, 0xD3, 0x4D, 0x26, 0xAB, 0x41, 0xC7, 0x18, 0xC5, 0x96, 0x4B, 0x41, 0xA7, 0xAD, 0x8C, 0xB6, 0x59, 0xA2, 0x84, 0xD5, 0x17};
-    uint8_t input1_1PKA_ECC_DoubleBaseLadder_IN_SCALAR_M[24]         = {0xDC, 0xA9, 0x91, 0x69, 0x87, 0x7B, 0x16, 0xAF, 0xD5, 0xC9, 0x53, 0xBE, 0x11, 0xA5, 0x13, 0xC3, 0x14, 0x0F, 0xDC, 0xBC, 0x96, 0x40, 0x1A, 0xD0};
-    uint8_t input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT1_X[24] = {0xE7, 0xE5, 0x90, 0xDA, 0xC1, 0x2D, 0x4A, 0x2F, 0x21, 0x5E, 0x6E, 0x16, 0x3B, 0x52, 0x27, 0xFB, 0x48, 0x59, 0x81, 0xDF, 0x68, 0x02, 0xAA, 0xF7};
-    uint8_t input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT1_Y[24] = {0x65, 0x18, 0xE1, 0xF1, 0x67, 0xB1, 0x7A, 0xA8, 0x90, 0x87, 0xD1, 0x53, 0x3B, 0xD1, 0x26, 0x76, 0xC8, 0x12, 0x4A, 0xE8, 0x91, 0x9C, 0x71, 0x45};
-    uint8_t input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT1_Z[24] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
-    uint8_t input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT2_X[24] = {0xC8, 0xC1, 0x4C, 0x6E, 0x83, 0xDA, 0x2D, 0xAB, 0x99, 0xC4, 0xDB, 0xE7, 0xDB, 0x39, 0x5E, 0x54, 0x28, 0x55, 0x89, 0x45, 0x88, 0xBC, 0x74, 0x06};
-    uint8_t input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT2_Y[24] = {0x2B, 0x35, 0x8F, 0x4B, 0xE4, 0xA1, 0xA9, 0xEB, 0x7F, 0x46, 0x21, 0xEE, 0x9F, 0xF9, 0xD7, 0xCB, 0xE1, 0xEB, 0x42, 0xCE, 0x87, 0xC6, 0xD9, 0xE0};
-    uint8_t input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT2_Z[24] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
-    uint8_t output1_X[24]                                            = {0x19, 0x51, 0xE5, 0x16, 0x72, 0x1D, 0x98, 0xB6, 0x9E, 0xEC, 0x34, 0x0A, 0x2B, 0xA1, 0xC2, 0x08, 0x03, 0x1C, 0xB6, 0xC7, 0xD3, 0x81, 0xCD, 0xEA};
-    uint8_t output1_Y[24]                                            = {0x57, 0x1F, 0xA8, 0xFE, 0xCB, 0xA8, 0x5A, 0xD9, 0xBA, 0xFD, 0x47, 0xA6, 0x60, 0xA9, 0x5F, 0xF5, 0xE3, 0xCE, 0x22, 0x50, 0x42, 0xA9, 0x4D, 0x31};
-    
-    uint8_t buffer_x[24] = {0};
-    uint8_t buffer_y[24] = {0};
+    if (gid == MBEDTLS_ECP_DP_SECP256R1) {
+        in.modulusSize = secp256r1_modulusSize;
+        in.primeOrderSize = secp256r1_orderSize;
+        in.modulus = secp256r1_p;
+        in.coefSign = secp256r1_coefSign;
+        in.coefA = secp256r1_a;
+        in.integerK = priv_key;
+        in.integerM = secp256r1_m;
+        in.basePointX1 = secp256r1_Gx;
+        in.basePointY1 = secp256r1_Gy;
+        in.basePointZ1 = secp256r1_Gz;
+        in.basePointX2 = NULL;
+        in.basePointY2 = NULL;
+        in.basePointZ2 = NULL;
+    } else if (gid == MBEDTLS_ECP_DP_SECP192R1) {
+        in.modulusSize = secp192r1_modulusSize;
+        in.primeOrderSize = secp192r1_orderSize;
+        in.modulus = secp192r1_p;
+        in.coefSign = secp192r1_coefSign;
+        in.coefA = secp192r1_a;
+        in.integerK = priv_key;
+        in.integerM = secp192r1_m;
+        in.basePointX1 = secp192r1_Gx;
+        in.basePointY1 = secp192r1_Gy;
+        in.basePointZ1 = secp192r1_Gz;
+        in.basePointX2 = NULL;
+        in.basePointY2 = NULL;
+        in.basePointZ2 = NULL;
+    } else if (gid == MBEDTLS_ECP_DP_SECP384R1) {
+        in.modulusSize = secp384r1_modulusSize;
+        in.primeOrderSize = secp384r1_orderSize;
+        in.modulus = secp384r1_p;
+        in.coefSign = secp384r1_coefSign;
+        in.coefA = secp384r1_a;
+        in.integerK = priv_key;
+        in.integerM = secp384r1_m;
+        in.basePointX1 = secp384r1_Gx;
+        in.basePointY1 = secp384r1_Gy;
+        in.basePointZ1 = secp384r1_Gz;
+        in.basePointX2 = NULL;
+        in.basePointY2 = NULL;
+        in.basePointZ2 = NULL;
+    } else {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
 
-    LOG_INF("PKA ECC Double Base Ladder");
-    PKA_ECCDoubleBaseLadderInTypeDef in;
-    PKA_ECCDoubleBaseLadderOutTypeDef out;
+    out.ptX = Qx;
+    out.ptY = Qy;
 
-    /* Set input parameters */
-    in.modulusSize = input1_modulusSize;
-    in.primeOrderSize = input1_orderSize;
-    in.modulus = input1_1PKA_ECC_DoubleBaseLadder_IN_MODULUS;
-    in.coefSign = input1_coefSign;
-    in.coefA = input1_1PKA_ECC_DoubleBaseLadder_IN_A_COEFF;
-    in.integerK = input1_1PKA_ECC_DoubleBaseLadder_IN_SCALAR_K;
-    in.integerM = input1_1PKA_ECC_DoubleBaseLadder_IN_SCALAR_M;
-    in.basePointX1 = input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT1_X;
-    in.basePointY1 = input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT1_Y;
-    in.basePointZ1 = input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT1_Z;
-    in.basePointX2 = input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT2_X;
-    in.basePointY2 = input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT2_Y;
-    in.basePointZ2 = input1_1PKA_ECC_DoubleBaseLadder_IN_INITIAL_POINT2_Z;
-
-    /* set output parameters */
-    out.ptX = &buffer_x[0];
-    out.ptY = &buffer_y[0];
-
-    /* Start PKA ECC Double Base Ladder operation */
     status = HAL_PKA_ECCDoubleBaseLadder(&hpka, &in, 5000);
-    if (status != HAL_OK)
-    {
+    if (status != HAL_OK) {
         LOG_ERR("HAL_PKA_ECCDoubleBaseLadder failed with ret=%d", status);
-        return -EAGAIN;
-    }
-    /* retrieve computation result */
-    HAL_PKA_ECCDoubleBaseLadder_GetResult(&hpka, &out);
-
-    /* check retrieved result with expected result */
-    if ((memcmp((uint8_t*)out.ptX, (uint8_t*)output1_X, 24) != 0) ||
-        (memcmp((uint8_t*)out.ptY, (uint8_t*)output1_Y, 24) != 0))
-    {
-        /* HAL PKA Operation error */
-        LOG_ERR("pka operation error!");
-        return -EAGAIN;
-    }
-
-    LOG_INF("pka success");
-
-    return 0;
-}
-
-static int pka_mod_exp()
-{
-    HAL_StatusTypeDef status = HAL_OK;
-    PKA_ModExpProtectModeInTypeDef in = {0};
-    
-    uint32_t input1_OpSize  = 32;
-    uint32_t input1_ExpSize = 32;
-    uint8_t input1_1[32]    = {0xE4, 0x88, 0xD8, 0x11, 0x76, 0xE5, 0x06, 0xFA, 0xB7, 0xC2, 0xFC, 0x5D, 0xF3, 0xCB, 0x75, 0x55, 0x34, 0x3F, 0x45, 0xB4, 0x78, 0x52, 0xBA, 0x7E, 0xFB, 0xF5, 0xB1, 0x2A, 0xF4, 0x0B, 0xF4, 0xB3};
-    uint8_t input1_2[32]    = {0x12, 0x28, 0x49, 0x3A, 0x81, 0xFE, 0xCA, 0x62, 0x2B, 0x2D, 0x83, 0xCD, 0x97, 0x2C, 0x28, 0x23, 0x39, 0x76, 0xF1, 0xF3, 0x71, 0xCE, 0x16, 0x84, 0xA0, 0x37, 0x98, 0xE0, 0xC7, 0x0B, 0xF4, 0x39};
-    uint8_t input1_3[32]    = {0x45, 0xAB, 0x14, 0x95, 0x48, 0x22, 0x69, 0xC4, 0x8F, 0x1E, 0xCA, 0x23, 0x0C, 0x1F, 0x5A, 0xB4, 0xBC, 0xE7, 0x12, 0xD8, 0x50, 0x09, 0x54, 0xBB, 0xE2, 0x1D, 0x2A, 0x39, 0x86, 0x3E, 0xDB, 0xFB};
-    uint8_t input1_4[32]    = {0xE4, 0x88, 0xD8, 0x11, 0x76, 0xE5, 0x06, 0xFA, 0xB7, 0xC2, 0xFC, 0x5D, 0xF3, 0xCB, 0x75, 0x53, 0x50, 0x7D, 0xA2, 0xCD, 0x98, 0x24, 0x33, 0x76, 0x14, 0x8F, 0xCF, 0xA3, 0xF5, 0xCF, 0x4A, 0x88};
-    uint8_t output1[32]     = {0xD1, 0x2F, 0x36, 0x6C, 0x61, 0xB5, 0x66, 0x48, 0x61, 0x17, 0x8A, 0x1E, 0x6B, 0xD0, 0xE7, 0xBF, 0x66, 0x0A, 0x2B, 0x07, 0x9D, 0x4D, 0x82, 0x68, 0x7E, 0xB1, 0x9D, 0x29, 0x94, 0x43, 0x6D, 0x39};
-
-    uint8_t buffer[32] = {0};
-
-    LOG_INF("PKA MOD EXP");
-
-    /* set input parameters */
-    in.OpSize  = input1_OpSize;
-    in.expSize = input1_ExpSize;
-    in.pMod    = input1_1;
-    in.pExp    = input1_2;
-    in.pOp1    = input1_3;
-    in.pPhi    = input1_4;
-
-    status = HAL_PKA_ModExpProtectMode(&hpka, &in, 5000);
-    if(status != HAL_OK)
-    {
-        LOG_ERR("HAL_PKA_ModExpProtectMode_IT failed with ret=%d", status);
-        return -EAGAIN;
-    }
-
-    /* retrieve computation result */
-    HAL_PKA_ModExp_GetResult(&hpka, buffer);
-
-    if(memcmp(buffer, output1, 32) != 0)
-    {
-        LOG_ERR("error!");
-        return -EAGAIN;
-    }
-
-    LOG_INF("success");
-    return 0;
-}   
-
-static int pka_ecdsa()
-{
-    const uint8_t prime256v1_Prime[] = {
-        /*0x00,*/ 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff
-    };
-    const uint32_t prime256v1_Prime_len = 32;
-
-    /* PKA operation need abs(a) */
-    const uint8_t prime256v1_absA[] = {
-        /*0x00,*/ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x03
-    };
-
-    /* PKA operation need the sign of A */
-    const uint32_t prime256v1_A_sign = 1;
-
-    const uint8_t prime256v1_B[] = {
-        0x5a, 0xc6, 0x35, 0xd8, 0xaa, 0x3a, 0x93, 0xe7, 0xb3, 0xeb, 0xbd, 0x55, 0x76, 0x98, 0x86,
-        0xbc, 0x65, 0x1d, 0x06, 0xb0, 0xcc, 0x53, 0xb0, 0xf6, 0x3b, 0xce, 0x3c, 0x3e, 0x27, 0xd2,
-        0x60, 0x4b
-    };
-
-    /* This buffer is extracted from prime256v1_Generator as its first part */
-    const uint8_t prime256v1_GeneratorX[] = {
-        0x6b, 0x17, 0xd1, 0xf2, 0xe1, 0x2c, 0x42, 0x47, 0xf8, 0xbc, 0xe6, 0xe5, 0x63, 0xa4, 0x40, 
-        0xf2, 0x77, 0x03, 0x7d, 0x81, 0x2d, 0xeb, 0x33, 0xa0, 0xf4, 0xa1, 0x39, 0x45, 0xd8, 0x98, 
-        0xc2, 0x96
-    };
-
-    /* This buffer is extracted from prime256v1_Generator as its second part */    
-    const uint8_t prime256v1_GeneratorY[] = {
-        0x4f, 0xe3, 0x42, 0xe2, 0xfe, 0x1a, 0x7f, 0x9b, 0x8e, 0xe7, 0xeb, 0x4a, 0x7c, 0x0f, 0x9e, 
-        0x16, 0x2b, 0xce, 0x33, 0x57, 0x6b, 0x31, 0x5e, 0xce, 0xcb, 0xb6, 0x40, 0x68, 0x37, 0xbf, 
-        0x51, 0xf5
-    };
-
-    const uint8_t prime256v1_Order[] = {
-    /*0x00,*/ 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xbc, 0xe6, 0xfa, 0xad, 0xa7, 0x17, 0x9e, 0x84, 0xf3, 0xb9, 0xca, 0xc2, 0xfc,
-        0x63, 0x25, 0x51
-    };
-    const uint32_t prime256v1_Order_len = 32;
-
-    /*
-        Adapted from
-        [P-256,SHA-256]
-        Msg = 5905238877c77421f73e43ee3da6f2d9e2ccad5fc942dcec0cbd25482935faaf416983fe165b1a045ee2bcd2e6dca3bdf46c4310a7461f9a37960ca672d3feb5473e253605fb1ddfd28065b53cb5858a8ad28175bf9bd386a5e471ea7a65c17cc934a9d791e91491eb3754d03799790fe2d308d16146d5c9b0d0debd97d79ce8
-        d = 519b423d715f8b581f4fa8ee59f4771a5b44c8130b4e3eacca54a56dda72b464
-        Qx = 1ccbe91c075fc7f4f033bfa248db8fccd3565de94bbfb12f3c59ff46c271bf83
-        Qy = ce4014c68811f9a21a1fdb2c0e6113e06db7ca93b7404e78dc7ccd5ca89a4ca9
-        k = 94a1bbb14b906a61a280f245f9e93c7f3b4a6247824f5d33b9670787642a68de
-        R = f3ac8061b514795b8843e3d6629527ed2afd6b1f6a555a7acabb5e6f79c8c2ac
-        S = 8bf77819ca05a6b2786c76262bf7371cef97b218e96f175a3ccdda2acc058903
-    */
-
-    /* Result of hashing SigGen_Msg (You can verify using "openssl dgst -sha256" or "sha256sum" utilities)*/
-    const uint8_t SigGen_Hash_Msg[] = {
-        0x44, 0xac, 0xf6, 0xb7, 0xe3, 0x6c, 0x13, 0x42, 0xc2, 0xc5, 0x89, 0x72, 0x04, 0xfe, 0x09, 0x50, 
-        0x4e, 0x1e, 0x2e, 0xfb, 0x1a, 0x90, 0x03, 0x77, 0xdb, 0xc4, 0xe7, 0xa6, 0xa1, 0x33, 0xec, 0x56
-    };
-
-    const uint8_t SigGen_d[] = {
-        0x51, 0x9b, 0x42, 0x3d, 0x71, 0x5f, 0x8b, 0x58, 0x1f, 0x4f, 0xa8, 0xee, 0x59, 0xf4, 0x77, 0x1a,
-        0x5b, 0x44, 0xc8, 0x13, 0x0b, 0x4e, 0x3e, 0xac, 0xca, 0x54, 0xa5, 0x6d, 0xda, 0x72, 0xb4, 0x64
-    };
-
-    const uint8_t SigGen_k[] = {
-        0x94, 0xa1, 0xbb, 0xb1, 0x4b, 0x90, 0x6a, 0x61, 0xa2, 0x80, 0xf2, 0x45, 0xf9, 0xe9, 0x3c, 0x7f,
-        0x3b, 0x4a, 0x62, 0x47, 0x82, 0x4f, 0x5d, 0x33, 0xb9, 0x67, 0x07, 0x87, 0x64, 0x2a, 0x68, 0xde
-    };
-
-    const uint8_t SigGen_R[] = {
-        0xf3, 0xac, 0x80, 0x61, 0xb5, 0x14, 0x79, 0x5b, 0x88, 0x43, 0xe3, 0xd6, 0x62, 0x95, 0x27, 0xed,
-        0x2a, 0xfd, 0x6b, 0x1f, 0x6a, 0x55, 0x5a, 0x7a, 0xca, 0xbb, 0x5e, 0x6f, 0x79, 0xc8, 0xc2, 0xac
-    };
-    const uint32_t SigGen_R_len = 32;
-
-    const uint8_t SigGen_S[] = {
-        0x8b, 0xf7, 0x78, 0x19, 0xca, 0x05, 0xa6, 0xb2, 0x78, 0x6c, 0x76, 0x26, 0x2b, 0xf7, 0x37, 0x1c,
-        0xef, 0x97, 0xb2, 0x18, 0xe9, 0x6f, 0x17, 0x5a, 0x3c, 0xcd, 0xda, 0x2a, 0xcc, 0x05, 0x89, 0x03
-    };
-    const uint32_t SigGen_S_len = 32;
-
-    HAL_StatusTypeDef status = HAL_OK;
-    PKA_ECDSASignInTypeDef in = {0};
-    PKA_ECDSASignOutTypeDef out = {0};
-
-    in.primeOrderSize =  prime256v1_Order_len;
-    in.modulusSize =     prime256v1_Prime_len;
-    in.coefSign =        prime256v1_A_sign;
-    in.coef =            prime256v1_absA;
-    in.coefB =           prime256v1_B;
-    in.modulus =         prime256v1_Prime;
-    in.basePointX =      prime256v1_GeneratorX;
-    in.basePointY =      prime256v1_GeneratorY;
-    in.primeOrder =      prime256v1_Order;
-
-    in.integer =         SigGen_k;
-    in.hash =            SigGen_Hash_Msg;
-    in.privateKey =      SigGen_d;
-
-    LOG_INF("ECDSA");
-
-    status = HAL_PKA_ECDSASign(&hpka, &in, 5000);
-    if(status != HAL_OK)
-    {
-        LOG_ERR("HAL_PKA_ECDSASign failed with ret=%d", status);
-        return -EAGAIN;
-    }
-
-    uint8_t buffer1[32] = {0};
-    uint8_t buffer2[32] = {0};
-    out.RSign = buffer1;
-    out.SSign = buffer2;
-
-    HAL_PKA_ECDSASign_GetResult(&hpka , &out, NULL);
-    if ((memcmp(out.RSign, SigGen_R, SigGen_R_len) != 0) || (memcmp(out.SSign, SigGen_S, SigGen_S_len) != 0))
-    {
-        LOG_ERR("error!");
-        return -EAGAIN;
-    }
-    
-    LOG_INF("success");
-
-    return 0;
-}
-
-int crypto_pka_init(void)
-{
-    HAL_StatusTypeDef status = HAL_OK;
-    hpka.Instance = PKA;
-
-    __HAL_RCC_RNG_CLK_ENABLE();
-    __HAL_RCC_PKA_CLK_ENABLE();
-
-    status = HAL_PKA_Init(&hpka);
-
-    if(status == HAL_OK)
-    {
-        LOG_INF("crypto_pka_init success.");
-    }
-    else
-    {
-        LOG_ERR("crypto_pka_init failed with ret=%d", status);
         return -ENODEV;
     }
-
+    HAL_PKA_ECCDoubleBaseLadder_GetResult(&hpka, &out);
     return 0;
 }
 
-int pka_operations(const struct shell *sh, size_t argc, char *argv[])
+void pka_check_curve()
 {
-    int operation = atoi(argv[1]);
-    
-    LOG_DBG("operation %d selected", operation);
+    static const uint8_t  secp192r1_k[24]       = {0xb1, 0xe7, 0x93, 0x39, 0xd0, 0x2a, 0x6c, 0x03, 0x31, 0xb0, 0x57, 0xb2, 0xe8, 0x4f, 0xb9, 0x3a, 0x26, 0x48, 0x34, 0x1d, 0x7c, 0x89, 0x1f, 0x3e};
+    static const uint8_t  secp256r1_k[32]       = {0xb1, 0xe7, 0x93, 0x39, 0xd0, 0x2a, 0x6c, 0x03, 0x31, 0xb0, 0x57, 0xb2, 0xe8, 0x4f, 0xb9, 0x3a, 0x26, 0x48, 0x34, 0x1d, 0x7c, 0x89, 0x1f, 0x3e, 0x46, 0x59, 0x1c, 0xdb, 0x62, 0x00, 0xa8, 0x05};
+    static const uint8_t  secp384r1_k[48]       = {
+        0xb1, 0xe7, 0x93, 0x39, 0xd0, 0x2a, 0x6c, 0x03, 0x31, 0xb0, 0x57, 0xb2, 0xe8, 0x4f, 0xb9, 0x3a, 0x26, 0x48, 0x34, 0x1d, 0x7c, 0x89, 0x1f, 0x3e, 
+        0xb1, 0xe7, 0x93, 0x39, 0xd0, 0x2a, 0x6c, 0x03, 0x31, 0xb0, 0x57, 0xb2, 0xe8, 0x4f, 0xb9, 0x3a, 0x26, 0x48, 0x34, 0x1d, 0x7c, 0x89, 0x1f, 0x3e
+    };
+    uint8_t Qx[48] = {0};
+    uint8_t Qy[48] = {0};
 
-    if(operation == 0) {
-        crypto_pka_init();
-    }
-    else if(operation == 1) {
-        pka_ecc_double_base_ladder();
-    }
-    else if(operation == 2) {
-        pka_mod_exp();
-    }
-    else if(operation == 3) {
-        pka_ecdsa();
-    }
-    else if(operation == 4)
-    {
-        void pka_check_curve();
-        pka_check_curve();
-    }
-    else {
-        LOG_WRN("unknown operation");
-    }
+    LOG_INF("Check PKA with SECP192R1, SECP256R1 and SECP384R1 curves.");
 
-    return 0;
+    LOG_HEXDUMP_INF(secp192r1_k, sizeof(secp192r1_k), "d (SECP192R1)");
+    pka_compute_public_key(MBEDTLS_ECP_DP_SECP192R1, secp192r1_k, Qx, Qy);
+    LOG_HEXDUMP_INF(Qx, 24, "Qx (SECP192R1)");
+    LOG_HEXDUMP_INF(Qy, 24, "Qy (SECP192R1)");
+    printk("\r\n");
+
+    LOG_HEXDUMP_INF(secp256r1_k, sizeof(secp256r1_k), "d (SECP256R1)");
+    pka_compute_public_key(MBEDTLS_ECP_DP_SECP256R1, secp256r1_k, Qx, Qy);
+    LOG_HEXDUMP_INF(Qx, 32, "Qx (SECP256R1)");
+    LOG_HEXDUMP_INF(Qy, 32, "Qy (SECP256R1)");
+    printk("\r\n");
+
+    LOG_HEXDUMP_INF(secp384r1_k, sizeof(secp384r1_k), "d (SECP384R1)");
+    pka_compute_public_key(MBEDTLS_ECP_DP_SECP384R1, secp384r1_k, Qx, Qy);
+    LOG_HEXDUMP_INF(Qx, 48, "Qx (SECP384R1)");
+    LOG_HEXDUMP_INF(Qy, 48, "Qy (SECP384R1)");
+    printk("\r\n");
 }
-
-SYS_INIT(crypto_pka_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
-
-SHELL_STATIC_SUBCMD_SET_CREATE(pka_commands,
-	SHELL_CMD(num, NULL,
-		"operation",
-		pka_operations),
-	SHELL_SUBCMD_SET_END
-);
-
-SHELL_CMD_REGISTER(pka, &pka_commands,
-		   "example for pka", NULL);
-
