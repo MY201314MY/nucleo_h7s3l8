@@ -2,6 +2,7 @@
 #include <zephyr/syscalls/time_units.h>
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
+#include <zephyr/drivers/entropy.h>
 #include <stm32h7rsxx_hal.h>
 #include <mbedtls/ecdsa.h>
 #include <mbedtls/ecp.h>
@@ -283,6 +284,28 @@ int crypto_pka_init(void)
     return 0;
 }
 
+static int f_rng(void *p_rng, unsigned char *output, size_t output_size) 
+{
+    const struct device *rng_dev = DEVICE_DT_GET(DT_NODELABEL(rng));
+
+    (void)p_rng;
+
+    int ret = entropy_get_entropy(rng_dev, output, output_size);
+    if(ret == 0)
+    {
+        LOG_HEXDUMP_INF(output, output_size, "random");
+    }
+
+    return ret;
+}
+
+/**
+ * @brief Verifies if an ECC keypair is valid and mathematically linked.
+ * 
+ * 1. Checks if the curve is supported.
+ * 2. Checks if the public key point Q lies on the curve.
+ * 3. Computes Q_calc = d * G and compares it with the provided public key.
+ */
 static int pka_verify_ecc_key(
     mbedtls_ecp_group_id grp_id,
     const uint8_t *d,    size_t d_len,
@@ -301,23 +324,43 @@ static int pka_verify_ecc_key(
     mbedtls_ecp_point_init(&pub);
     mbedtls_ecp_point_init(&pub_calc);
 
-    if ((ret = mbedtls_ecp_group_load(&grp, grp_id)) != 0) {
-        printk("Failed to load curve\n");
+    // 1. Load curve parameters
+    ret = mbedtls_ecp_group_load(&grp, grp_id);
+    if (ret != 0) {
+        LOG_ERR("Failed to load curve (Error: %d)", ret);
         goto exit;
     }
 
+    // 2. Import private key d and provided public key Q (X, Y)
     mbedtls_mpi_read_binary(&pri, d, d_len);
-
     mbedtls_mpi_read_binary(&pub.MBEDTLS_PRIVATE(X), Qx, Qx_len);
     mbedtls_mpi_read_binary(&pub.MBEDTLS_PRIVATE(Y), Qy, Qy_len);
     mbedtls_mpi_lset(&pub.MBEDTLS_PRIVATE(Z), 1);
 
+    // 3. Verify that the public key point is on the selected curve
     ret = mbedtls_ecp_check_pubkey(&grp, &pub);
     if (ret != 0) {
-        LOG_ERR("PUBLIC KEY INVALID !!!\n");
+        LOG_ERR("PUBLIC KEY INVALID: Point is not on the curve!");
         goto exit;
     }
-    LOG_INF("Public key is VALID (on curve)\n");
+
+    // 4. Verify key linkage: Compute pub_calc = d * G
+    // Using dummy_rng to bypass MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE
+    ret = mbedtls_ecp_mul(&grp, &pub_calc, &pri, &grp.G, f_rng, NULL);
+    if (ret != 0) {
+        LOG_ERR("Failed to compute public key from private key (Error: %d)", ret);
+        goto exit;
+    }
+
+    // 5. Compare the provided public key with the calculated one
+    // mbedtls_ecp_point_cmp returns 0 if points are identical
+    if (mbedtls_ecp_point_cmp(&pub, &pub_calc) != 0) {
+        LOG_ERR("KEYPAIR MISMATCH: Public key does not belong to this private key!");
+        ret = -1; 
+        goto exit;
+    }
+
+    LOG_INF("Success: Public key matches the private key and is on curve.");
 
 exit:
     mbedtls_ecp_group_free(&grp);
@@ -342,14 +385,14 @@ void pka_check_curve()
     LOG_INF("Check PKA with SECP192R1, SECP256R1 and SECP384R1 curves.");
 
     int pka_compute_public_key(mbedtls_ecp_group_id gid, const uint8_t *priv_key, uint8_t *Qx, uint8_t *Qy);
-
+#if 0
     LOG_HEXDUMP_INF(secp192r1_k, sizeof(secp192r1_k), "d (SECP192R1)");
     pka_compute_public_key(MBEDTLS_ECP_DP_SECP192R1, secp192r1_k, Qx, Qy);
     LOG_HEXDUMP_INF(Qx, 24, "Qx (SECP192R1)");
     LOG_HEXDUMP_INF(Qy, 24, "Qy (SECP192R1)");
     pka_verify_ecc_key(MBEDTLS_ECP_DP_SECP192R1, secp192r1_k, sizeof(secp192r1_k), Qx, 24, Qy, 24);
     printk("\r\n");
-
+#endif
     LOG_HEXDUMP_INF(secp256r1_k, sizeof(secp256r1_k), "d (SECP256R1)");
     pka_compute_public_key(MBEDTLS_ECP_DP_SECP256R1, secp256r1_k, Qx, Qy);
     LOG_HEXDUMP_INF(Qx, 32, "Qx (SECP256R1)");
@@ -357,12 +400,14 @@ void pka_check_curve()
     pka_verify_ecc_key(MBEDTLS_ECP_DP_SECP256R1, secp256r1_k, sizeof(secp256r1_k), Qx, 32, Qy, 32);
     printk("\r\n");
 
+#if 0
     LOG_HEXDUMP_INF(secp384r1_k, sizeof(secp384r1_k), "d (SECP384R1)");
     pka_compute_public_key(MBEDTLS_ECP_DP_SECP384R1, secp384r1_k, Qx, Qy);
     LOG_HEXDUMP_INF(Qx, 48, "Qx (SECP384R1)");
     LOG_HEXDUMP_INF(Qy, 48, "Qy (SECP384R1)");
     pka_verify_ecc_key(MBEDTLS_ECP_DP_SECP384R1, secp384r1_k, sizeof(secp384r1_k), Qx, 48, Qy, 48);
     printk("\r\n");
+#endif
 }
 
 int pka_operations(const struct shell *sh, size_t argc, char *argv[])

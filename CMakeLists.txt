@@ -15,6 +15,7 @@ target_sources(app PRIVATE
     src/operation.c
     
     src/mbedtls/pka.c
+    src/mbedtls/mbedtls-ecp-alt.c
     src/mbedtls/mbedtls-sha-alt.c
     src/mbedtls/mbedtls-ecdsa-alt.c
     src/mbedtls/mbedtls-ecdhe-alt.c
