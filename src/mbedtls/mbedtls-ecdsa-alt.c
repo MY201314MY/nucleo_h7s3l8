@@ -17,7 +17,7 @@ int mbedtls_ecdsa_genkey(mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
                          int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
     int ret = 0;
-    size_t priv_len = 0, pub_len = 0;
+    size_t length = 0;
     uint8_t rand_priv[66] = {0};
     uint8_t Qx[66] = {0}, Qy[66] = {0};
 
@@ -25,13 +25,13 @@ int mbedtls_ecdsa_genkey(mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
 
     switch (gid) {
         case MBEDTLS_ECP_DP_SECP192R1:
-            priv_len = pub_len = 24;
+            length = 24;
             break;
         case MBEDTLS_ECP_DP_SECP256R1:
-            priv_len = pub_len = 32;
+            length = 32;
             break;
         case MBEDTLS_ECP_DP_SECP384R1:
-            priv_len = pub_len = 48;
+            length = 48;
             break;
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
@@ -48,13 +48,13 @@ int mbedtls_ecdsa_genkey(mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
 
     switch (gid) {
         case MBEDTLS_ECP_DP_SECP192R1:
-            mbedtls_mpi_read_binary(&mpi_n, secp192r1_n, priv_len);
+            mbedtls_mpi_read_binary(&mpi_n, secp192r1_n, length);
             break;
         case MBEDTLS_ECP_DP_SECP256R1:
-            mbedtls_mpi_read_binary(&mpi_n, secp256r1_n, priv_len);
+            mbedtls_mpi_read_binary(&mpi_n, secp256r1_n, length);
             break;
         case MBEDTLS_ECP_DP_SECP384R1:
-            mbedtls_mpi_read_binary(&mpi_n, secp384r1_n, priv_len);
+            mbedtls_mpi_read_binary(&mpi_n, secp384r1_n, length);
             break;
         default:
             mbedtls_mpi_free(&mpi_n);
@@ -62,34 +62,34 @@ int mbedtls_ecdsa_genkey(mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
     }
 
     do {
-        if ((ret = f_rng(p_rng, rand_priv, priv_len)) != 0)
+        if ((ret = f_rng(p_rng, rand_priv, length)) != 0)
             return ret;
-        mbedtls_mpi_read_binary(&ctx->MBEDTLS_PRIVATE(d), rand_priv, priv_len);
+        mbedtls_mpi_read_binary(&ctx->MBEDTLS_PRIVATE(d), rand_priv, length);
     } while (mbedtls_mpi_cmp_int(&ctx->MBEDTLS_PRIVATE(d), 1) < 0 ||
              mbedtls_mpi_cmp_mpi(&ctx->MBEDTLS_PRIVATE(d), &mpi_n) >= 0);
     mbedtls_mpi_free(&mpi_n);
 
-    LOG_HEXDUMP_INF(rand_priv, priv_len, "d");
+    LOG_HEXDUMP_INF(rand_priv, length, "d");
 
     if (pka_compute_public_key(gid, rand_priv, Qx, Qy) != 0) {
-        memset(Qx, 0, pub_len);
-        memset(Qy, 0, pub_len);
+        memset(Qx, 0, length);
+        memset(Qy, 0, length);
         LOG_ERR("L:%d", __LINE__);
         return MBEDTLS_ERR_ECP_ALLOC_FAILED;
     }
 
-    if ((ret = mbedtls_mpi_read_binary(&ctx->MBEDTLS_PRIVATE(d), rand_priv, priv_len)) != 0)
+    if ((ret = mbedtls_mpi_read_binary(&ctx->MBEDTLS_PRIVATE(d), rand_priv, length)) != 0)
     {
         LOG_ERR("L:%d", __LINE__);
         return ret;
     }
 
-    if ((ret = mbedtls_mpi_read_binary(&ctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), Qx, pub_len)) != 0)
+    if ((ret = mbedtls_mpi_read_binary(&ctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), Qx, length)) != 0)
     {
         LOG_ERR("L:%d", __LINE__);
         return ret;
     }
-    if ((ret = mbedtls_mpi_read_binary(&ctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), Qy, pub_len)) != 0)
+    if ((ret = mbedtls_mpi_read_binary(&ctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), Qy, length)) != 0)
     {
         LOG_ERR("L:%d", __LINE__);
         return ret;

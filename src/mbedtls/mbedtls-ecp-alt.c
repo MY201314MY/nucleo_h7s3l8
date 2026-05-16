@@ -20,32 +20,32 @@ int mbedtls_ecp_mul(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
     HAL_StatusTypeDef status;
-    size_t plen = mbedtls_mpi_size(&grp->P);
+    size_t length = mbedtls_mpi_size(&grp->P);
     
-    uint8_t d_buf[48], qx_buf[48], qy_buf[48];
+    uint8_t d_buf[48], Px[48], Py[48];
     uint8_t res_x[48], res_y[48];
-    uint8_t p_buf[48], n_buf[48], b_buf[48];
+    uint8_t _P[48], _N[48], _B[48];
 
     if (mbedtls_mpi_cmp_int(m, 0) == 0) return mbedtls_ecp_set_zero(R);
-    if (plen > sizeof(d_buf)) return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    if (length > sizeof(d_buf)) return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
 
-    mbedtls_mpi_write_binary(m, d_buf, plen);
-    mbedtls_mpi_write_binary(&P->MBEDTLS_PRIVATE(X), qx_buf, plen);
-    mbedtls_mpi_write_binary(&P->MBEDTLS_PRIVATE(Y), qy_buf, plen);
-    mbedtls_mpi_write_binary(&grp->P, p_buf, plen);
-    mbedtls_mpi_write_binary(&grp->N, n_buf, plen);
-    mbedtls_mpi_write_binary(&grp->B, b_buf, plen);
+    mbedtls_mpi_write_binary(m, d_buf, length);
+    mbedtls_mpi_write_binary(&P->MBEDTLS_PRIVATE(X), Px, length);
+    mbedtls_mpi_write_binary(&P->MBEDTLS_PRIVATE(Y), Py, length);
+    mbedtls_mpi_write_binary(&grp->P, _P, length);
+    mbedtls_mpi_write_binary(&grp->N, _N, length);
+    mbedtls_mpi_write_binary(&grp->B, _B, length);
 
     PKA_ECCMulInTypeDef  pka_in  = {0};
     PKA_ECCMulOutTypeDef pka_out = {0};
 
-    pka_in.modulusSize   = plen;
+    pka_in.modulusSize   = length;
     pka_in.coefSign = 1;
-    if(plen == 24)
+    if(length == 24)
     {
         pka_in.coefA         = secp192r1_a;
     }
-    else if (plen == 32)
+    else if (length == 32)
     {
         pka_in.coefA         = secp256r1_a;
     }
@@ -54,15 +54,15 @@ int mbedtls_ecp_mul(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         pka_in.coefA         = secp384r1_a;
     }
 
-    pka_in.modulus       = p_buf; 
-    pka_in.pointX        = qx_buf;
-    pka_in.pointY        = qy_buf;
+    pka_in.modulus       = _P; 
+    pka_in.pointX        = Px;
+    pka_in.pointY        = Py;
     
-    pka_in.scalarMulSize = plen;
+    pka_in.scalarMulSize = length;
     pka_in.scalarMul     = d_buf;
-    pka_in.primeOrder    = n_buf;
+    pka_in.primeOrder    = _N;
 
-    pka_in.coefB = b_buf;
+    pka_in.coefB = _B;
 
     status = HAL_PKA_ECCMul(&hpka, &pka_in, 2000);
     if (status != HAL_OK) {
@@ -75,8 +75,8 @@ int mbedtls_ecp_mul(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     pka_out.ptY = res_y;
     HAL_PKA_ECCMul_GetResult(&hpka, &pka_out);
 
-    mbedtls_mpi_read_binary(&R->MBEDTLS_PRIVATE(X), res_x, plen);
-    mbedtls_mpi_read_binary(&R->MBEDTLS_PRIVATE(Y), res_y, plen);
+    mbedtls_mpi_read_binary(&R->MBEDTLS_PRIVATE(X), res_x, length);
+    mbedtls_mpi_read_binary(&R->MBEDTLS_PRIVATE(Y), res_y, length);
     mbedtls_mpi_lset(&R->MBEDTLS_PRIVATE(Z), 1);
 
     return 0;

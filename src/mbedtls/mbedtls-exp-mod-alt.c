@@ -19,16 +19,16 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
 {
     LOG_INF("mbedtls_mpi_exp_mod called with A=%d, E=%d, N=%d", mbedtls_mpi_size(A)*8, mbedtls_mpi_size(E)*8, mbedtls_mpi_size(N)*8);
 
-    size_t n_len = mbedtls_mpi_size(N);
-    size_t e_len = mbedtls_mpi_size(E);
+    size_t n_length = mbedtls_mpi_size(N);
+    size_t e_length = mbedtls_mpi_size(E);
 
-    mbedtls_mpi_write_binary(N, n_buf, n_len);
-    mbedtls_mpi_write_binary(A, a_buf, n_len);
-    mbedtls_mpi_write_binary(E, e_buf, e_len);
+    mbedtls_mpi_write_binary(N, n_buf, n_length);
+    mbedtls_mpi_write_binary(A, a_buf, n_length);
+    mbedtls_mpi_write_binary(E, e_buf, e_length);
 
     PKA_ModExpInTypeDef in = {0};
-    in.OpSize = n_len;
-    in.expSize = e_len;
+    in.OpSize = n_length;
+    in.expSize = e_length;
     in.pOp1 = a_buf;
     in.pExp = e_buf;
     in.pMod = n_buf;
@@ -41,5 +41,5 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
 
     HAL_PKA_ModExp_GetResult(&hpka, out_buf);
 
-    return mbedtls_mpi_read_binary(X, out_buf, n_len);
+    return mbedtls_mpi_read_binary(X, out_buf, n_length);
 }

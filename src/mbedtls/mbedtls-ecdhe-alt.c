@@ -19,33 +19,33 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp,
                              void *p_rng )
 {
     int ret;
-    size_t len = 0;
+    size_t length = 0;
     uint8_t priv_key[66] = {0};
     uint8_t Qx[66] = {0}, Qy[66] = {0};
 
     LOG_DBG("gen public");
 
     switch(grp->id) {
-        case MBEDTLS_ECP_DP_SECP192R1: len = 24; break;
-        case MBEDTLS_ECP_DP_SECP256R1: len = 32; break;
-        case MBEDTLS_ECP_DP_SECP384R1: len = 48; break;
+        case MBEDTLS_ECP_DP_SECP192R1: length = 24; break;
+        case MBEDTLS_ECP_DP_SECP256R1: length = 32; break;
+        case MBEDTLS_ECP_DP_SECP384R1: length = 48; break;
         default: return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
     }
 
-    if ((ret = f_rng(p_rng, priv_key, len)) != 0)
+    if ((ret = f_rng(p_rng, priv_key, length)) != 0)
         return ret;
 
     /*
-        LOG_HEXDUMP_INF(priv_key, len, "d");
+        LOG_HEXDUMP_INF(priv_key, length, "d");
     */
 
     ret = pka_compute_public_key(grp->id, priv_key, Qx, Qy);
     if (ret != 0)
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
 
-    mbedtls_mpi_read_binary(d, priv_key, len);
-    mbedtls_mpi_read_binary(&Q->MBEDTLS_PRIVATE(X), Qx, len);
-    mbedtls_mpi_read_binary(&Q->MBEDTLS_PRIVATE(Y), Qy, len);
+    mbedtls_mpi_read_binary(d, priv_key, length);
+    mbedtls_mpi_read_binary(&Q->MBEDTLS_PRIVATE(X), Qx, length);
+    mbedtls_mpi_read_binary(&Q->MBEDTLS_PRIVATE(Y), Qy, length);
     mbedtls_mpi_lset(&Q->MBEDTLS_PRIVATE(Z), 1);
 
     return ret;
