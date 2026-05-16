@@ -385,14 +385,14 @@ void pka_check_curve()
     LOG_INF("Check PKA with SECP192R1, SECP256R1 and SECP384R1 curves.");
 
     int pka_compute_public_key(mbedtls_ecp_group_id gid, const uint8_t *priv_key, uint8_t *Qx, uint8_t *Qy);
-#if 0
+
     LOG_HEXDUMP_INF(secp192r1_k, sizeof(secp192r1_k), "d (SECP192R1)");
     pka_compute_public_key(MBEDTLS_ECP_DP_SECP192R1, secp192r1_k, Qx, Qy);
     LOG_HEXDUMP_INF(Qx, 24, "Qx (SECP192R1)");
     LOG_HEXDUMP_INF(Qy, 24, "Qy (SECP192R1)");
     pka_verify_ecc_key(MBEDTLS_ECP_DP_SECP192R1, secp192r1_k, sizeof(secp192r1_k), Qx, 24, Qy, 24);
     printk("\r\n");
-#endif
+
     LOG_HEXDUMP_INF(secp256r1_k, sizeof(secp256r1_k), "d (SECP256R1)");
     pka_compute_public_key(MBEDTLS_ECP_DP_SECP256R1, secp256r1_k, Qx, Qy);
     LOG_HEXDUMP_INF(Qx, 32, "Qx (SECP256R1)");
@@ -400,14 +400,14 @@ void pka_check_curve()
     pka_verify_ecc_key(MBEDTLS_ECP_DP_SECP256R1, secp256r1_k, sizeof(secp256r1_k), Qx, 32, Qy, 32);
     printk("\r\n");
 
-#if 0
+
     LOG_HEXDUMP_INF(secp384r1_k, sizeof(secp384r1_k), "d (SECP384R1)");
     pka_compute_public_key(MBEDTLS_ECP_DP_SECP384R1, secp384r1_k, Qx, Qy);
     LOG_HEXDUMP_INF(Qx, 48, "Qx (SECP384R1)");
     LOG_HEXDUMP_INF(Qy, 48, "Qy (SECP384R1)");
     pka_verify_ecc_key(MBEDTLS_ECP_DP_SECP384R1, secp384r1_k, sizeof(secp384r1_k), Qx, 48, Qy, 48);
     printk("\r\n");
-#endif
+
 }
 
 int pka_operations(const struct shell *sh, size_t argc, char *argv[])
