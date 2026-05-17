@@ -22,6 +22,7 @@ target_sources(app PRIVATE
     src/mbedtls/mbedtls-exp-mod-alt.c
 
     src/check/aes.c
+    src/check/sha.c
     src/check/pka.c
     src/check/crypto.c
     src/check/rsa.c

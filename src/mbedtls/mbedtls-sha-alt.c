@@ -21,7 +21,7 @@ int crypto_hash_init(void)
     return 0;
 }
 
-int crypto_hash(uint32_t type, const uint8_t *text, size_t size, uint8_t *digest)
+static int crypto_hash(uint32_t type, const uint8_t *text, size_t size, uint8_t *digest)
 {
     size_t _size = 0;
     uint8_t _digest[64] = {0};

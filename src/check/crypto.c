@@ -82,6 +82,11 @@ static int example_crypto_operations(const struct shell *sh, size_t argc, char *
     }
     else if(operation == 4)
     {
+        int soft_crypto_hash_test(void);
+        soft_crypto_hash_test();
+    }
+    else if(operation == 5)
+    {
         debug_supported_ciphersuites();
     }
     else 
