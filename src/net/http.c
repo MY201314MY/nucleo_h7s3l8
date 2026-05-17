@@ -129,8 +129,7 @@ int example_http_request(const struct shell *sh, size_t argc, char *argv[])
 		req.recv_buf_len = sizeof(recv_buf);
 
 		ret = http_client_req(fd, &req, timeout, NULL);
-
-		shutdown(fd, SHUT_RDWR);
+		LOG_INF("ret (socket id) : %d", ret);
 		break;
 	}
 end:
