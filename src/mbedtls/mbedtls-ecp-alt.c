@@ -9,7 +9,7 @@
 #include "mbedtls-curve.h"
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(ecp_alt, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(ecp_alt, LOG_LEVEL_INF);
 
 static PKA_HandleTypeDef hpka = { .Instance = PKA, .State = HAL_PKA_STATE_READY };
 /*

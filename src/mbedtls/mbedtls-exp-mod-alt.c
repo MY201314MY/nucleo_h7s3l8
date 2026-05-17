@@ -4,7 +4,7 @@
 #include "stm32h7rsxx_hal.h"
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(rsa_alt, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(rsa_alt, LOG_LEVEL_INF);
 
 static PKA_HandleTypeDef hpka = { .Instance = PKA, .State = HAL_PKA_STATE_READY };
 
@@ -17,7 +17,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
                         const mbedtls_mpi *E, const mbedtls_mpi *N,
                         mbedtls_mpi *prec_RR)
 {
-    LOG_INF("mbedtls_mpi_exp_mod called with A=%d, E=%d, N=%d", mbedtls_mpi_size(A)*8, mbedtls_mpi_size(E)*8, mbedtls_mpi_size(N)*8);
+    LOG_DBG("mbedtls_mpi_exp_mod called with A=%d, E=%d, N=%d", mbedtls_mpi_size(A)*8, mbedtls_mpi_size(E)*8, mbedtls_mpi_size(N)*8);
 
     size_t n_length = mbedtls_mpi_size(N);
     size_t e_length = mbedtls_mpi_size(E);

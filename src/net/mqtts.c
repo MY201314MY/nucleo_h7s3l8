@@ -484,6 +484,6 @@ SHELL_STATIC_SUBCMD_SET_CREATE(mqtt_commands,
 	SHELL_SUBCMD_SET_END
 );
 
-SHELL_CMD_REGISTER(mqtt, &mqtt_commands,
-		   "example for zephyr mqtt", NULL);
+SHELL_CMD_REGISTER(mqtts, &mqtt_commands,
+		   "example for zephyr mqtts", NULL);
 
