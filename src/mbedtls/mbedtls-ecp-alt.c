@@ -27,6 +27,8 @@ int mbedtls_ecp_mul_restartable(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     uint8_t res_x[48], res_y[48];
     uint8_t _P[48], _N[48], _B[48];
 
+    LOG_DBG("ecp mul");
+
     if (mbedtls_mpi_cmp_int(m, 0) == 0) return mbedtls_ecp_set_zero(R);
     if (length > sizeof(d_buf)) return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
 
@@ -98,7 +100,7 @@ int mbedtls_ecp_muladd_restartable(
     PKA_ECCDoubleBaseLadderInTypeDef in = {0};
     PKA_ECCDoubleBaseLadderOutTypeDef out = {0};
 
-    LOG_DBG("ecp_muladd");
+    LOG_DBG("ecp muladd");
 
     switch(grp->id) {
         case MBEDTLS_ECP_DP_SECP192R1:
