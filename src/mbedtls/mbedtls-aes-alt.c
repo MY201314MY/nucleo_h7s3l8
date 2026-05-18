@@ -70,68 +70,42 @@ int crypto_aes_init()
     return 0;
 }
 
-static int crypto_aes_operation(const struct shell *sh, size_t argc, char *argv[])
+int crypto_aes_hw_test(void)
 {
-    int operation = atoi(argv[1]);
     HAL_StatusTypeDef status = HAL_OK;
-    
-    LOG_INF("operation %d selected", operation);
 
-    if(operation == 0)
+    status = HAL_CRYP_Encrypt(&hcryp, Plaintext, PLAINTEXT_SIZE, EncryptedText, TIMEOUT_VALUE);
+    if (status == HAL_OK)
     {
-        status = HAL_CRYP_Encrypt(&hcryp, Plaintext, PLAINTEXT_SIZE, EncryptedText, TIMEOUT_VALUE);
-        if (status == HAL_OK)
-        {
-            LOG_HEXDUMP_INF((uint8_t*)EncryptedText, sizeof(EncryptedText), "encrypt");
-            LOG_HEXDUMP_DBG((uint8_t*)Ciphertext, sizeof(Ciphertext), "compare");
-        }
-        else
-        {
-            LOG_INF("status %d", status);
-        }
-
-        status = HAL_CRYPEx_AESGCM_GenerateAuthTAG(&hcryp, TAG, TIMEOUT_VALUE);
-        if (status == HAL_OK)
-        {
-            LOG_HEXDUMP_INF((uint8_t*)TAG, sizeof(TAG), "tag");
-            LOG_HEXDUMP_DBG((uint8_t*)ExpectedTAG, sizeof(ExpectedTAG), "tag");
-        }
-        else
-        {
-            LOG_INF("status %d", status);
-        }
-
-        status = HAL_CRYP_Decrypt(&hcryp, Ciphertext, PLAINTEXT_SIZE, DecryptedText, TIMEOUT_VALUE);
-        if (status == HAL_OK)
-        {
-            LOG_HEXDUMP_INF((uint8_t*)DecryptedText, sizeof(DecryptedText), "decrypt");
-        }
-        else
-        {
-            LOG_INF("status %d", status);
-        }
-    }
-    else if(operation == 1)
-    {
-
-    }
-    else if(operation == 2)
-    {
-        
+        LOG_HEXDUMP_INF((uint8_t*)EncryptedText, sizeof(EncryptedText), "encrypt");
+        LOG_HEXDUMP_DBG((uint8_t*)Ciphertext, sizeof(Ciphertext), "compare");
     }
     else
     {
-        LOG_WRN("unknown operation");
+        LOG_INF("status %d", status);
     }
+
+    status = HAL_CRYPEx_AESGCM_GenerateAuthTAG(&hcryp, TAG, TIMEOUT_VALUE);
+    if (status == HAL_OK)
+    {
+        LOG_HEXDUMP_INF((uint8_t*)TAG, sizeof(TAG), "tag");
+        LOG_HEXDUMP_DBG((uint8_t*)ExpectedTAG, sizeof(ExpectedTAG), "tag");
+    }
+    else
+    {
+        LOG_INF("status %d", status);
+    }
+
+    status = HAL_CRYP_Decrypt(&hcryp, Ciphertext, PLAINTEXT_SIZE, DecryptedText, TIMEOUT_VALUE);
+    if (status == HAL_OK)
+    {
+        LOG_HEXDUMP_INF((uint8_t*)DecryptedText, sizeof(DecryptedText), "decrypt");
+    }
+    else
+    {
+        LOG_INF("status %d", status);
+    }
+    
     return 0;
 }
 
-SHELL_STATIC_SUBCMD_SET_CREATE(haes_commands,
-	SHELL_CMD(num, NULL,
-		"haes operaion",
-		crypto_aes_operation),
-	SHELL_SUBCMD_SET_END
-);
-
-SHELL_CMD_REGISTER(haes, &haes_commands,
-		   "example for haes encrypt/decrypt", NULL);

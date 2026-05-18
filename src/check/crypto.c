@@ -89,6 +89,16 @@ static int example_crypto_operations(const struct shell *sh, size_t argc, char *
     {
         debug_supported_ciphersuites();
     }
+    else if(operation == 6)
+    {
+        int crypto_aes_hw_test(void);
+        crypto_aes_hw_test();
+    }
+    else if(operation == 7)
+    {
+        int crypto_aes_mbedtls_test(void);
+        crypto_aes_mbedtls_test();
+    }
     else 
     {
         LOG_WRN("unknown operation");
