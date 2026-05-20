@@ -16,6 +16,9 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(operation, LOG_LEVEL_DBG);
 
+#define GPIO_BUTTON_PORT DT_NODELABEL(gpioc)
+#define GPIO_BUTTON_PIN  13
+
 static int example_operations(const struct shell *sh, size_t argc, char *argv[])
 {
     int ret = -1;
@@ -45,8 +48,30 @@ static int example_operations(const struct shell *sh, size_t argc, char *argv[])
         LOG_INF("temperature: %.1f C", sensor_value_to_double(&temp));
 
     }
-    else if(operation == 2) {
-        
+    else if(operation == 2) 
+    {
+        if (__HAL_PWR_GET_FLAG(PWR_FLAG_SBF) != RESET)
+        {
+            __HAL_PWR_CLEAR_FLAG(PWR_FLAG_SBF);
+            if (__HAL_PWR_GET_FLAG(PWR_WAKEUP_FLAG3) != RESET)
+            {
+                __HAL_PWR_CLEAR_FLAG(PWR_WAKEUP_FLAG3);
+            }
+        }
+
+        {
+            PWREx_WakeupPinTypeDef PinParams = {0};
+
+            HAL_PWR_DisableWakeUpPin(PWR_WAKEUP_PIN3);
+            __HAL_PWR_CLEAR_FLAG(PWR_WAKEUP_FLAG3);
+
+            PinParams.WakeUpPin    = PWR_WAKEUP_PIN3;
+            PinParams.PinPolarity  = PWR_PIN_POLARITY_LOW;
+            PinParams.PinPull      = PWR_PIN_PULL_UP;
+            HAL_PWREx_EnableWakeUpPin(&PinParams);
+
+            HAL_PWR_EnterSTANDBYMode();
+        }
     }
     else if(operation == 3)
     {
@@ -127,7 +152,9 @@ static int example_operations(const struct shell *sh, size_t argc, char *argv[])
     }
     else if(operation == 7)
     {
-
+        ret = gpio_pin_configure(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN, GPIO_INPUT | GPIO_PULL_UP);
+        ret = gpio_pin_get_raw(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN);
+        LOG_INF("pin status : %d", ret);
     }
     else if(operation == 8)
     {
@@ -189,7 +216,42 @@ static int example_operations(const struct shell *sh, size_t argc, char *argv[])
     }
     else if(operation == 13)
     {
-        
+        if(__HAL_PWR_GET_FLAG(PWR_FLAG_SBF) != RESET)
+        {
+            __HAL_PWR_CLEAR_FLAG(PWR_FLAG_SBF);
+            LOG_INF("reset from : %s", "standby");
+            if (__HAL_PWR_GET_FLAG(PWR_WAKEUP_FLAG3) != RESET)
+            {
+                __HAL_PWR_CLEAR_FLAG(PWR_WAKEUP_FLAG3);
+                LOG_INF("wake up by pin : %d", 3);
+            }
+        }
+        else if (__HAL_RCC_GET_FLAG(RCC_FLAG_PORRST) != RESET)
+        {
+            LOG_INF("reset from : %s", "power on");
+            __HAL_RCC_CLEAR_RESET_FLAGS();
+        }
+        else if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST) != RESET)
+        {
+            LOG_INF("reset from : %s", "hard reset");
+            __HAL_RCC_CLEAR_RESET_FLAGS();
+        }
+    }
+    else if(operation == 14)
+    {
+        RTC_HandleTypeDef hrtc;
+        if(__HAL_PWR_GET_FLAG(PWR_FLAG_SBF) != RESET)
+        {
+            __HAL_PWR_CLEAR_FLAG(PWR_FLAG_SBF);
+        }
+        HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
+        __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WUF_ALL);
+
+        if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0x10, RTC_WAKEUPCLOCK_CK_SPRE_16BITS, 0) != HAL_OK)
+        {
+            LOG_ERR("L:%d", __LINE__);
+        }
+        HAL_PWR_EnterSTANDBYMode();
     }
     else {
         LOG_WRN("unknown operation");

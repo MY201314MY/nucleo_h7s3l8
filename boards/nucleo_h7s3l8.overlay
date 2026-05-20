@@ -38,7 +38,8 @@
 			interrupts = <32 0>;
 			clocks = <&rcc STM32_CLOCK(APB4, 16)>,
 				<&rcc STM32_SRC_LSE RTC_SEL(1)>;
-			prescaler = <32768>;
+			async-prescaler = <127>;
+			sync-prescaler = <255>;
 			alarms-count = <2>;
 			alrm-exti-line = <17>;
 			status = "okay";
