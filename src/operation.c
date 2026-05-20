@@ -50,27 +50,19 @@ static int example_operations(const struct shell *sh, size_t argc, char *argv[])
     }
     else if(operation == 2) 
     {
-        if (__HAL_PWR_GET_FLAG(PWR_FLAG_SBF) != RESET)
-        {
-            __HAL_PWR_CLEAR_FLAG(PWR_FLAG_SBF);
-            if (__HAL_PWR_GET_FLAG(PWR_WAKEUP_FLAG3) != RESET)
-            {
-                __HAL_PWR_CLEAR_FLAG(PWR_WAKEUP_FLAG3);
-            }
+        const struct device *const vref_dev = DEVICE_DT_GET(DT_NODELABEL(vref));
+        struct sensor_value voltage;
+
+        if (!device_is_ready(vref_dev)) {
+            LOG_ERR("device not ready.");
+            return -ENODEV;
         }
-
-        {
-            PWREx_WakeupPinTypeDef PinParams = {0};
-
-            HAL_PWR_DisableWakeUpPin(PWR_WAKEUP_PIN3);
-            __HAL_PWR_CLEAR_FLAG(PWR_WAKEUP_FLAG3);
-
-            PinParams.WakeUpPin    = PWR_WAKEUP_PIN3;
-            PinParams.PinPolarity  = PWR_PIN_POLARITY_LOW;
-            PinParams.PinPull      = PWR_PIN_PULL_UP;
-            HAL_PWREx_EnableWakeUpPin(&PinParams);
-
-            HAL_PWR_EnterSTANDBYMode();
+        ret = sensor_sample_fetch(vref_dev);
+        if (ret == 0) {
+            sensor_channel_get(vref_dev, SENSOR_CHAN_VOLTAGE, &voltage);
+            LOG_INF("voltage of reference : %d.%06d V", voltage.val1, voltage.val2);
+        } else {
+            LOG_ERR("sensor_sample_fetch failed with ret : %d", ret);
         }
     }
     else if(operation == 3)
@@ -152,9 +144,14 @@ static int example_operations(const struct shell *sh, size_t argc, char *argv[])
     }
     else if(operation == 7)
     {
-        ret = gpio_pin_configure(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN, GPIO_INPUT | GPIO_PULL_UP);
-        ret = gpio_pin_get_raw(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN);
-        LOG_INF("pin status : %d", ret);
+        const struct device *rng_dev = DEVICE_DT_GET(DT_NODELABEL(rng));
+        uint8_t random[32] = {0};
+
+        ret = entropy_get_entropy(rng_dev, random, sizeof(random));
+        if(ret == 0)
+        {
+            LOG_HEXDUMP_INF(random, sizeof(random), "random");
+        }
     }
     else if(operation == 8)
     {
@@ -187,32 +184,34 @@ static int example_operations(const struct shell *sh, size_t argc, char *argv[])
     }
     else if(operation == 11)
     {
-        const struct device *const vref_dev = DEVICE_DT_GET(DT_NODELABEL(vref));
-        struct sensor_value voltage;
-
-        if (!device_is_ready(vref_dev)) {
-            LOG_ERR("device not ready.");
-            return -ENODEV;
+        if (__HAL_PWR_GET_FLAG(PWR_FLAG_SBF) != RESET)
+        {
+            __HAL_PWR_CLEAR_FLAG(PWR_FLAG_SBF);
+            if (__HAL_PWR_GET_FLAG(PWR_WAKEUP_FLAG3) != RESET)
+            {
+                __HAL_PWR_CLEAR_FLAG(PWR_WAKEUP_FLAG3);
+            }
         }
-        ret = sensor_sample_fetch(vref_dev);
-        if (ret == 0) {
-            sensor_channel_get(vref_dev, SENSOR_CHAN_VOLTAGE, &voltage);
-            LOG_INF("voltage of reference : %d.%06d V", voltage.val1, voltage.val2);
-        } else {
-            LOG_ERR("sensor_sample_fetch failed with ret : %d", ret);
+
+        {
+            PWREx_WakeupPinTypeDef PinParams = {0};
+
+            HAL_PWR_DisableWakeUpPin(PWR_WAKEUP_PIN3);
+            __HAL_PWR_CLEAR_FLAG(PWR_WAKEUP_FLAG3);
+
+            PinParams.WakeUpPin    = PWR_WAKEUP_PIN3;
+            PinParams.PinPolarity  = PWR_PIN_POLARITY_LOW;
+            PinParams.PinPull      = PWR_PIN_PULL_UP;
+            HAL_PWREx_EnableWakeUpPin(&PinParams);
+
+            HAL_PWR_EnterSTANDBYMode();
         }
     }
     else if(operation == 12)
     {
-        const struct device *rng_dev = DEVICE_DT_GET(DT_NODELABEL(rng));
-        uint8_t random[32] = {0};
-
-        ret = entropy_get_entropy(rng_dev, random, sizeof(random));
-        if(ret == 0)
-        {
-            LOG_HEXDUMP_INF(random, sizeof(random), "random");
-        }
-
+        ret = gpio_pin_configure(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN, GPIO_INPUT | GPIO_PULL_UP);
+        ret = gpio_pin_get_raw(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN);
+        LOG_INF("pin status : %d", ret);
     }
     else if(operation == 13)
     {
