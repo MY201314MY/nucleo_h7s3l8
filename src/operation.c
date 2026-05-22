@@ -13,11 +13,62 @@
 #include <zephyr/drivers/entropy.h>
 #include <stm32h7rsxx.h>
 
+#include <stm32h7rsxx_ll_pwr.h>
+#include <stm32h7rsxx_ll_rcc.h>
+#include <stm32h7rsxx_ll_bus.h>
+#include <stm32h7rsxx_ll_system.h>
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(operation, LOG_LEVEL_DBG);
 
 #define GPIO_BUTTON_PORT DT_NODELABEL(gpioc)
 #define GPIO_BUTTON_PIN  13
+
+void SYSCLKConfig_EXIT_STOP(void)
+{
+    LL_RCC_HSI_Enable();
+    while (LL_RCC_HSI_IsReady() == 0) 
+    {
+        ;
+    }
+
+    LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_HSI);
+    while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSI) 
+    {
+        ;
+    }
+
+    if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE0) != HAL_OK)
+    {
+        ;
+    }
+    
+    __HAL_RCC_HSE_CONFIG(RCC_HSE_ON);
+    while(LL_RCC_HSE_IsReady() == 0)
+    {
+        ;
+    }
+
+    LL_RCC_PLL1_Enable();
+    while (LL_RCC_PLL1_IsReady() == 0) 
+    {
+        ;
+    }
+    
+    LL_RCC_PLL2_Enable();
+    while (LL_RCC_PLL2_IsReady() == 0) 
+    {
+        ;
+    }
+
+    LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL1);
+    while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL1)
+    {
+        ;
+    }
+
+    HAL_RCCEx_EnableClockProtection(RCC_CLOCKPROTECT_XSPI);
+}
 
 static int example_operations(const struct shell *sh, size_t argc, char *argv[])
 {
@@ -210,6 +261,7 @@ static int example_operations(const struct shell *sh, size_t argc, char *argv[])
     else if(operation == 12)
     {
         ret = gpio_pin_configure(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN, GPIO_INPUT | GPIO_PULL_UP);
+        ret = gpio_pin_interrupt_configure(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN, GPIO_INT_EDGE_FALLING);
         ret = gpio_pin_get_raw(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN);
         LOG_INF("pin status : %d", ret);
     }
@@ -251,6 +303,26 @@ static int example_operations(const struct shell *sh, size_t argc, char *argv[])
             LOG_ERR("L:%d", __LINE__);
         }
         HAL_PWR_EnterSTANDBYMode();
+    }
+    else if(operation == 15)
+    {
+        ret = gpio_pin_configure(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN, GPIO_INPUT | GPIO_PULL_UP);
+        ret = gpio_pin_interrupt_configure(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN, GPIO_INT_EDGE_FALLING);
+        ret = gpio_pin_get_raw(DEVICE_DT_GET(GPIO_BUTTON_PORT), GPIO_BUTTON_PIN);
+
+        HAL_PWR_EnterSTOPMode(PWR_MAINREGULATOR_ON, PWR_STOPENTRY_WFI);
+        
+        SYSCLKConfig_EXIT_STOP();
+
+        LOG_INF("wake up form STOP.");
+    }
+    else if(operation == 16)
+    {
+        
+    }
+    else if(operation == 17)
+    {
+        
     }
     else {
         LOG_WRN("unknown operation");
