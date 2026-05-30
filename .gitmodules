@@ -1,0 +1,3 @@
+[submodule "src/tflite"]
+	path = src/tflite
+	url = git@github.com:MY201314MY/tflite.git
