@@ -14,8 +14,6 @@ target_sources(app PRIVATE
     src/main.cpp
     src/operation.c
     src/bsp/uart.c
-
-    src/nucleo_iks01a1/nucleo_iks01a1.c
 )
 
 add_compile_definitions(CMSIS_NN)
