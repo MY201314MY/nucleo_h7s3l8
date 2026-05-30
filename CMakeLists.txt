@@ -18,6 +18,8 @@ target_sources(app PRIVATE
     src/nucleo_iks01a1/nucleo_iks01a1.c
 )
 
+add_compile_definitions(CMSIS_NN)
+
 set(TFLITE_MICRO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/tflite)
 
 target_sources(app PRIVATE
@@ -85,12 +87,12 @@ target_sources(app PRIVATE
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/hexdump.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/activations.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/activations_common.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/add.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/add.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/add_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/add_n.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/arg_min_max.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/assign_variable.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/batch_matmul.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/batch_matmul.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/batch_matmul_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/batch_to_space_nd.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/broadcast_args.cc
@@ -102,7 +104,7 @@ target_sources(app PRIVATE
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/circular_buffer_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/comparisons.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/concatenation.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/conv.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/conv.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/conv_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cumsum.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/decode.cc
@@ -113,7 +115,7 @@ target_sources(app PRIVATE
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/decompress.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/decompress_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/depth_to_space.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/depthwise_conv.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/depthwise_conv.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/depthwise_conv_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/dequantize.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/dequantize_common.cc
@@ -130,7 +132,7 @@ target_sources(app PRIVATE
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/floor.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/floor_div.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/floor_mod.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/fully_connected.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/fully_connected.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/fully_connected_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/gather.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/gather_nd.cc
@@ -150,16 +152,16 @@ target_sources(app PRIVATE
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/logistic_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/lstm_eval.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/lstm_eval_common.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/maximum_minimum.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/maximum_minimum.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/micro_tensor_utils.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/mirror_pad.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/mul.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/mul.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/mul_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/neg.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/pack.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/pad.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/pad.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/pad_common.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/pooling.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/pooling.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/pooling_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/prelu.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/prelu_common.cc
@@ -177,7 +179,7 @@ target_sources(app PRIVATE
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/select.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/shape.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/slice.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/softmax.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/softmax.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/softmax_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/space_to_batch_nd.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/space_to_depth.cc
@@ -189,13 +191,13 @@ target_sources(app PRIVATE
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/strided_slice_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/sub.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/sub_common.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/svdf.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/svdf.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/svdf_common.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/tanh.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/transpose.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/transpose.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/transpose_common.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/transpose_conv.cc
-    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/transpose_conv.cc
+    ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/cmsis_nn/unidirectional_sequence_lstm.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/unpack.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/var_handle.cc
     ${TFLITE_MICRO_DIR}/tensorflow/lite/micro/kernels/while.cc
@@ -226,12 +228,32 @@ target_sources(app PRIVATE
     ${TFLITE_MICRO_DIR}/third_party/kissfft/tools/kiss_fftr.c
 )
 
+file(GLOB_RECURSE CMSIS_NN_SRCS
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/ActivationFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/ConvolutionFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/NNSupportFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/ReshapeFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/TransposeFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/BasicMathFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/FullyConnectedFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/PadFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/SoftmaxFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/LSTMFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/PoolingFunctions/*.c"
+    "${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Source/SVDFunctions/*.c"
+)
+
+target_sources(app PRIVATE ${CMSIS_NN_SRCS})
+
 target_include_directories(app PRIVATE
     ${TFLITE_MICRO_DIR}                                     # Corresponds to #include "tensorflow/..." and "signal/..."
     ${TFLITE_MICRO_DIR}/third_party/flatbuffers/include     # flatbuffers headers
     ${TFLITE_MICRO_DIR}/third_party/gemmlowp                # fixed-point math library
     ${TFLITE_MICRO_DIR}/third_party/kissfft                 # FFT library used for signal processing
     ${TFLITE_MICRO_DIR}/third_party/ruy                     # ruy shim for matrix multiplication acceleration
+
+    ${TFLITE_MICRO_DIR}/third_party/cmsis_nn
+    ${TFLITE_MICRO_DIR}/third_party/cmsis_nn/Include
 )
 
 target_compile_options(app PRIVATE
