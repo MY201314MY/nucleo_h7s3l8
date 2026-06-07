@@ -79,13 +79,13 @@ static int bsp_imu_thread_entry(void)
         sensor_channel_get(imu, SENSOR_CHAN_ACCEL_XYZ, accel_xyz);
 		sensor_channel_get(imu, SENSOR_CHAN_GYRO_XYZ, gyro_xyz);
         sprintf(buffer, "%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf\r\n", ((double)k_uptime_get())/1000,
-            sensor_value_to_double(&accel_xyz[0]),
-			sensor_value_to_double(&accel_xyz[1]),
-			sensor_value_to_double(&accel_xyz[2]),
-
             sensor_value_to_double(&gyro_xyz[0]),
 			sensor_value_to_double(&gyro_xyz[1]),
-			sensor_value_to_double(&gyro_xyz[2]));
+			sensor_value_to_double(&gyro_xyz[2]),
+		
+			sensor_value_to_double(&accel_xyz[0]),
+			sensor_value_to_double(&accel_xyz[1]),
+			sensor_value_to_double(&accel_xyz[2]));
 
         bsp_uart_transmit(buffer, strlen(buffer));
 
