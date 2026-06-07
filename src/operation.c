@@ -42,6 +42,8 @@ void SYSCLKConfig_EXIT_STOP(void)
     {
         ;
     }
+
+    HAL_RCCEx_DisableClockProtection(RCC_CLOCKPROTECT_XSPI);
     
     __HAL_RCC_HSE_CONFIG(RCC_HSE_ON);
     while(LL_RCC_HSE_IsReady() == 0)
