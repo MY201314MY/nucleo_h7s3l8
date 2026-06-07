@@ -7,13 +7,12 @@
 #include <zephyr/kernel.h>
 #include <zephyr/linker/linker-defs.h>
 #include <zephyr/drivers/gpio.h>
-#include <zephyr/logging/log.h>
-#include <zephyr/net/net_if.h>
-#include <zephyr/net/net_core.h>
-#include <zephyr/net/net_context.h>
-#include <zephyr/net/net_mgmt.h>
 
+#include "bsp/button.h"
+
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
+
 
 #define LED_DELAY_MS 100
 
@@ -34,9 +33,9 @@ int main(void)
 
 	gpio_pin_configure_dt(&led0, GPIO_OUTPUT_INACTIVE);
 
+	bsp_button_init();
+
 	while (1) {
-		gpio_pin_toggle_dt(&led0);
-		k_sleep(K_MSEC(LED_DELAY_MS));
 		gpio_pin_toggle_dt(&led0);
 		k_sleep(K_MSEC(LED_DELAY_MS));
 	}

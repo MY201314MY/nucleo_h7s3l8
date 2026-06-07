@@ -14,6 +14,7 @@ target_sources(app PRIVATE
     src/main.c
     src/operation.c
 
+    src/bsp/button.c
     src/nucleo_iks01a1/nucleo_iks01a1.c
 )
 
