@@ -15,7 +15,7 @@
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 
-#define LED_DELAY_MS 1000
+#define LED_DELAY_MS 100
 
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 
@@ -36,12 +36,13 @@ int main(void)
 
 	bsp_button_init();
 	bsp_uart_init();
+	int bsp_imu_init(void);
+	bsp_imu_init();
 
-	while (1) {
+	while(1) 
+	{
 		gpio_pin_toggle_dt(&led0);
 		k_sleep(K_MSEC(LED_DELAY_MS));
-
-		bsp_uart_transmit("hello\r\n", 7);
 	}
 	
 	return 0;

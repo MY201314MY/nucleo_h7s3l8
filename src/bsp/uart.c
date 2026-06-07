@@ -109,10 +109,9 @@ int bsp_uart_init(void)
 int bsp_uart_transmit(uint8_t *txbuffer, size_t size)
 {
     uint32_t count = ring_buf_put(&tx_rb, txbuffer, size);
-    LOG_INF("count : %d", count);
 
     uart_irq_tx_enable(uart);
 
-    return size;
+    return count;
 }
 
