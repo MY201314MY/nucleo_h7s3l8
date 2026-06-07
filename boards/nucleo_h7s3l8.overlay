@@ -118,6 +118,10 @@
 	current-speed = <115200>;
 };
 
+&usart1 {
+	current-speed = <921600>;
+};
+
 &spi1 {
 	spim_dt: spi-device@0 {
 		compatible = "vnd,spi-device";
